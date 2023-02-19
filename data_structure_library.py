@@ -1,22 +1,50 @@
+import numpy as np
+
 MAX_NODES = 16384
 
 class Node:
-        def __init__(self, index, neighbors):
-            # tuple representing the index, can be used to index into grid
-            self.index = index
+        def __init__(self, row, col):
+            # Row and col location of the Node
+            self.row = row
+            self.col = col
+            
             # list of the neighbors of a particular node
-            self.neighbors = neighbors
-
-            #booleans for indicating if an algorithm has visited the node
-            self.bfs_visited = False
-            self.dfs_visited = False
-            self.dji_visited = False
-            self.rand_visited = False
-
+            self.neighbors = None
+            # List of all Nodes the Node is connected to. Each node is connected to itself
+            self.connected = [self]
             # parent of the node in a graph
             self.parent = None
+		
+        def Connect(self, node):
+            self.connected = np.append(self.connected, node)
+		
+        def __str__(self):
+            print(self.row, self.col, "-", end = ' ')
+            for node in self.connected:
+                print(node.row, node.col, ',', end = ' ')
+            return ""
 
 
+class VWall:
+    def __init__(self, col, llim, ulim) -> None:
+        self.col = col
+        self.llim = llim
+        self.ulim = ulim
+        
+    def __str__(self):
+        print(self.col, self.llim, self.ulim)
+        return ""
+
+class HWall:
+    def __init__(self, row, llim, ulim) -> None:
+        self.row = row
+        self.llim = llim
+        self.ulim = ulim
+     
+    def __str__(self):
+        print(self.row, self.llim, self.ulim)
+        return "" 
+     
 # Priority Queue class for use in Djikstra implementation
 class PriorityQueue:
     def __init__(self) -> None:
@@ -72,15 +100,3 @@ class PriorityQueue:
                 lst[k] = left[j]
                 j+=1
                 k+=1
-
-class VWall:
-    def __init__(self, col, llim, ulim) -> None:
-        self.col = col
-        self.llim = llim
-        self.ulim = ulim
-
-class HWall:
-    def __init__(self, row, llim, ulim) -> None:
-        self.row = row
-        self.llim = llim
-        self.ulim = ulim
