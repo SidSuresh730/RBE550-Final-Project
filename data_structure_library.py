@@ -15,7 +15,7 @@ class Node:
 
             # parent of the node in a graph
             self.parent = None
-            
+
 
 # Priority Queue class for use in Djikstra implementation
 class PriorityQueue:
@@ -72,3 +72,15 @@ class PriorityQueue:
                 lst[k] = left[j]
                 j+=1
                 k+=1
+
+class VWall:
+    def __init__(self, col, llim, ulim) -> None:
+        self.col = col
+        self.llim = llim
+        self.ulim = ulim
+
+class HWall:
+    def __init__(self, row, llim, ulim) -> None:
+        self.row = row
+        self.llim = llim
+        self.ulim = ulim
