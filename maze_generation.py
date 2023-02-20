@@ -92,7 +92,7 @@ def connect_nodes(node1, node2):
 				node2_con.Connect(node1_con)
 
 
-def get_list_walls(maze, num_inside):
+def get_list_walls(maze):
 	walls = []
 	start_point = []
 	end_point = []
@@ -278,7 +278,7 @@ def main():
 	# ---- Generate the starting fires
 	generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
 	# ---- Get the list of all walls in the maze
-	walls = get_list_walls(big_maze, num_inside)
+	walls = get_list_walls(big_maze)
 	#print(walls)
 	# ---- Generate the entrance to the maze
 	generate_entrances(big_maze, num_ent)
