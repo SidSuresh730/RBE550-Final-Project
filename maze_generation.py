@@ -53,14 +53,14 @@ def random_kruskal_maze(field):
 		if not nodes_connected:
 			field[check_wall[0]][check_wall[1]] = 1
 			connect_nodes(Node1, Node2)
-		else:
-			if Node1.row == Node2.row:
-				Vwall = VWall(check_wall[1], Node1.row-1, Node1.row+1)
-				vwalls.append(Vwall)
-			elif Node1.col == Node2.col:
-				Hwall = HWall(check_wall[0], Node1.col-1, Node1.col+1)
-				hwalls.append(Hwall)
-	return [field, vwalls, hwalls]
+		#else:
+		#	if Node1.row == Node2.row:
+		#		Vwall = VWall(check_wall[1], Node1.row-1, Node1.row+1)
+		#		vwalls.append(Vwall)
+		#	elif Node1.col == Node2.col:
+		#		Hwall = HWall(check_wall[0], Node1.col-1, Node1.col+1)
+		#		hwalls.append(Hwall)
+	return field
 	
 
 # Given location of a node and a list of Nodes, return the full node from the list
@@ -91,12 +91,54 @@ def connect_nodes(node1, node2):
 				node1_con.Connect(node2_con)
 				node2_con.Connect(node1_con)
 
-def get_list_walls(field):
-	wall = []
-	for i in range(0, num_rows, num_inside): 
-		for j in range(num_cols):
-			return 1
-	return 1
+
+def get_list_walls(maze, num_inside):
+	walls = []
+	start_point = []
+	end_point = []
+	start_true = False
+	for i in range(len(maze)): 
+		for j in range(len(maze[0])):
+			if not maze[i, j]:
+				if not start_true:
+					start_point = [i, j]
+					start_true = True
+				end_point = [i, j]
+			else:
+				if start_point != end_point:
+					Hwall = HWall(start_point[0], start_point[1], end_point[1])
+					walls.append(Hwall)
+				start_true = False
+				start_point = []
+				end_point = []
+		if start_point != end_point:
+			Hwall = HWall(start_point[0], start_point[1], end_point[1])
+			walls.append(Hwall)
+		start_true = False
+		start_point = []
+		end_point = []
+	for j in range(len(maze[0])): 
+		for i in range(len(maze)):
+			if not maze[i, j]:
+				if not start_true:
+					start_point = [i, j]
+					start_true = True
+				end_point = [i, j]
+			else:
+				if start_point != end_point:
+					Vwall = VWall(start_point[1], start_point[0], end_point[0])
+					walls.append(Vwall)
+				start_true = False
+				start_point = []
+				end_point = []
+		if start_point != end_point:
+			Vwall = VWall(start_point[1], start_point[0], end_point[0])
+			walls.append(Vwall)
+		start_true = False
+		start_point = []
+		end_point = []
+	return walls
+
 
 def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 	num_rows = len(maze)
@@ -206,33 +248,38 @@ def plot(field):
 	plt.title("Maze")
 	plt.show()
 
+
 def main():
 	print("Run Maze Generation Main\n")
 	# ---- Generate field with walls ----
-	num_rows = 6 # Number of rows in the maze
-	num_cols = 6 # Number of columns in the maze
-	num_fires_smol = 0 # Number of 1x1 in the maze
-	num_fires_med = 0 # Number of 2x2 in the maze
-	num_fires_lrg = 0 # Number of 3x3 in the maze
-	num_inside = 5
-	num_ent = 0
+	num_rows = 4 # Number of rows in the maze
+	num_cols = 4 # Number of columns in the maze
+	num_fires_smol = 5 # Number of 1x1 in the maze
+	num_fires_med = 3 # Number of 2x2 in the maze
+	num_fires_lrg = 1 # Number of 3x3 in the maze
+	num_inside = 6 # Number of padding inside each cell
+	num_ent = 2 # Number of entrances to the maze
 	if num_inside == 1 and (num_fires_med or num_fires_lrg):
 		print("Maze insides too small")
 		sys.exit()
 	if num_inside == 2 and num_fires_lrg:
 		print("Maze insides too small")
 		sys.exit()
-	field = np.zeros((num_rows * 2 + 1, num_cols * 2 + 1))
+	
+	# ---- Generate maze with all walls active
+	maze = np.zeros((num_rows * 2 + 1, num_cols * 2 + 1))
 	for i in range(num_rows):
 		for j in range(num_cols):
-			field[i*2+1][j*2+1] = 1
-	
+			maze[i*2+1][j*2+1] = 1
 	# ---- Turn field into maze ----
-	[field, vwalls, hwalls] = random_kruskal_maze(field)
+	maze = random_kruskal_maze(maze)
 	# ---- Increase maze size ----
-	big_maze = maze_expansion(field, num_inside)
+	big_maze = maze_expansion(maze, num_inside)
 	# ---- Generate the starting fires
 	generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
+	# ---- Get the list of all walls in the maze
+	walls = get_list_walls(big_maze, num_inside)
+	#print(walls)
 	# ---- Generate the entrance to the maze
 	generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
