@@ -93,7 +93,8 @@ def connect_nodes(node1, node2):
 
 
 def get_list_walls(maze):
-	walls = []
+	hwalls = []
+	vwalls = []
 	start_point = []
 	end_point = []
 	start_true = False
@@ -107,13 +108,13 @@ def get_list_walls(maze):
 			else:
 				if start_point != end_point:
 					Hwall = HWall(start_point[0], start_point[1], end_point[1])
-					walls.append(Hwall)
+					hwalls.append(Hwall)
 				start_true = False
 				start_point = []
 				end_point = []
 		if start_point != end_point:
 			Hwall = HWall(start_point[0], start_point[1], end_point[1])
-			walls.append(Hwall)
+			hwalls.append(Hwall)
 		start_true = False
 		start_point = []
 		end_point = []
@@ -127,17 +128,17 @@ def get_list_walls(maze):
 			else:
 				if start_point != end_point:
 					Vwall = VWall(start_point[1], start_point[0], end_point[0])
-					walls.append(Vwall)
+					vwalls.append(Vwall)
 				start_true = False
 				start_point = []
 				end_point = []
 		if start_point != end_point:
 			Vwall = VWall(start_point[1], start_point[0], end_point[0])
-			walls.append(Vwall)
+			vwalls.append(Vwall)
 		start_true = False
 		start_point = []
 		end_point = []
-	return walls
+	return (hwalls, vwalls)
 
 
 def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
@@ -278,7 +279,7 @@ def main():
 	# ---- Generate the starting fires
 	generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
 	# ---- Get the list of all walls in the maze
-	walls = get_list_walls(big_maze)
+	(hwalls, vwalls) = get_list_walls(big_maze)
 	#print(walls)
 	# ---- Generate the entrance to the maze
 	generate_entrances(big_maze, num_ent)
