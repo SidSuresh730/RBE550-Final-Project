@@ -50,14 +50,14 @@ class RRTBot:
         dir = direction(q_curr, q_rand)
         print("Direction = %f" % dir)
         #attempt to grow tree in direction of q_rand
-        q_new = Node(row=round(self.epsilon*math.sin(dir),2),col=round(self.epsilon*math.cos(dir),2))
+        q_new = Node(row=round(q_curr.row + self.epsilon*math.sin(dir),2),col=round(q_curr.col +self.epsilon*math.cos(dir),2))
         possible_edge = (q_curr, q_new)
         if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new):
             q_new.parent = q_curr
             self.tree.V.append(q_new)
             self.current_pos=q_new
             self.tree.E.append(possible_edge)
-            self.plot()
+            # self.plot()
 
     # method for finding closest node in tree to randomly generated node
     # Input: Randomly generated node
@@ -150,9 +150,10 @@ def main():
 	    for j in range(num_cols):
 	    	field[i*2+1][j*2+1] = 1
 	# ---- Turn field into maze ----
-    [field, vwalls, hwalls] = maze_generation.random_kruskal_maze(field)
+    maze = maze_generation.random_kruskal_maze(field)
 	# ---- Increase maze size ----
-    big_maze = maze_generation.maze_expansion(field, num_inside)
+    big_maze = maze_generation.maze_expansion(maze, num_inside)
+    (hwalls, vwalls) = maze_generation.get_list_walls(big_maze)
 	# ---- Generate the starting fires
     maze_generation.generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
 	# ---- Generate the entrance to the maze
@@ -163,6 +164,6 @@ def main():
     for i in range(0,100):
         print(i)
         bot.rrt_move(hwalls=hwalls,vwalls=vwalls)
-    
+    bot.plot()
 if __name__ == "__main__":
 	main()
