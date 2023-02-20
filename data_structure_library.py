@@ -23,6 +23,9 @@ class Node:
             for node in self.connected:
                 print(node.row, node.col, ',', end = ' ')
             return ""
+        
+        def __eq__(self, other):
+            return (self.row, self.col) == (other.row, other.col)
 
 
 class VWall:
