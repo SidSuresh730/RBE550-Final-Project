@@ -205,7 +205,7 @@ def main():
     maze_generation.generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
     # maze_generation.plot(big_maze)
-    bot = RRTBot(epsilon= 3, start=Node(row=1, col=1), nrow=36, ncol=36)
+    bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=36, ncol=36)
     while bot.success<500:
         # print(i)
         bot.rrt_move(hwalls=hwalls,vwalls=vwalls)

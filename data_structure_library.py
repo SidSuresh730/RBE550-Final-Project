@@ -7,7 +7,8 @@ class Node:
             # Row and col location of the Node
             self.row = row
             self.col = col
-            
+            self.g = float('Inf')
+            self.h = float('Inf')
             # list of the neighbors of a particular node
             self.neighbors = None
             # List of all Nodes the Node is connected to. Each node is connected to itself
