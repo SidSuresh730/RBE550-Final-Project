@@ -68,15 +68,15 @@ class PriorityQueue:
     # method for getting min distance element
     # queue is first sorted by decreasing distance and 
     # the last element is accessed and removed
-    def get_min_dist_element(self, dict):
-        self.mergesort(dict, self.q)
+    def get_min_dist_element(self):
+        self.mergesort(self.q)
         if(len(self.q)>0):
             return self.q.pop()
 
     # Method for sorting queue
     # Time: O(nlogn)
     # Space: O(n)
-    def mergesort(self, dict, lst):
+    def mergesort(self, lst):
         self.recursion_calls+=1
         # if self.recursion_calls<100:
         #     print('Recursion calls: %d' % (self.recursion_calls))
@@ -89,7 +89,7 @@ class PriorityQueue:
             self.mergesort(dict,right)
             i, j, k = (0,0,0)
             while i<len(right) and j<len(left):
-                if(dict[right[i]]>=dict[left[j]]):
+                if(right[i].g>=left[j].g):
                     lst[k] = right[i]
                     i+=1
                 else:
