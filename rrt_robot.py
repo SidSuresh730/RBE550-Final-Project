@@ -1,29 +1,29 @@
-from data_structure_library import Node, VWall, HWall
-import random
+from data_structure_library import Node, Graph, distance, direction
 import math
+import random
 import sys
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import maze_generation
 
-# function for finding Euclidean distance between nodes
-# Input: Nodes
-# Output: float (Distance)
-def distance(node1, node2):
-    return math.sqrt((node1.col-node2.col)**2 + (node1.row-node2.row)**2)
+# # function for finding Euclidean distance between nodes
+# # Input: Nodes
+# # Output: float (Distance)
+# def distance(node1, node2):
+#     return math.sqrt((node1.col-node2.col)**2 + (node1.row-node2.row)**2)
 
-# function for finding the direction from node 1 to node 2
-# Input: Node 1 and Node 2
-# Output: float (angle of direction)
-def direction(node1, node2):
-    return math.atan2(node2.row-node1.row, node2.col-node1.col)
+# # function for finding the direction from node 1 to node 2
+# # Input: Node 1 and Node 2
+# # Output: float (angle of direction)
+# def direction(node1, node2):
+#     return math.atan2(node2.row-node1.row, node2.col-node1.col)
 
-class Graph:
-    def __init__(self, start) -> None:
-        self.V = []
-        self.V.append(start)
-        self.E = []
+# class Graph:
+#     def __init__(self, start) -> None:
+#         self.V = []
+#         self.V.append(start)
+#         self.E = []
 
 class RRTBot:
     def __init__(self, epsilon, start, nrow, ncol) -> None:
@@ -51,7 +51,7 @@ class RRTBot:
         q_curr = self.find_closest_node(q_rand)
         dir = direction(q_curr, q_rand)
         dis = distance(q_curr, q_rand)
-        #attempt to grow tree in direction of q_rand
+        #attempt to grow tree in direction of q_rand a maximum of epsilon
         q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
         possible_edge = (q_curr, q_new)
         if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new):
@@ -83,9 +83,11 @@ class RRTBot:
     def will_collide(self,edge, hwalls, vwalls) -> bool:
         # check if vertical edge
         if(edge[1].col == edge[0].col):
-            for wall in vwalls:
-                if edge[0].col == wall.col:
-                    if edge[1].row in np.arange(wall.llim, wall.ulim+1, 0.01):
+            for wall in hwalls:
+                l = min(edge[0].row, edge[1].row)
+                u = max(edge[0].row, edge[1].row)
+                if edge[0].col>=wall.llim and edge[0].col<=wall.ulim:
+                    if l <= wall.row and u >= wall.row:
                         return True
             return False
         #find slope of edge
