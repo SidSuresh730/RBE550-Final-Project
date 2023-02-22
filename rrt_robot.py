@@ -7,24 +7,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import maze_generation
 
-# # function for finding Euclidean distance between nodes
-# # Input: Nodes
-# # Output: float (Distance)
-# def distance(node1, node2):
-#     return math.sqrt((node1.col-node2.col)**2 + (node1.row-node2.row)**2)
-
-# # function for finding the direction from node 1 to node 2
-# # Input: Node 1 and Node 2
-# # Output: float (angle of direction)
-# def direction(node1, node2):
-#     return math.atan2(node2.row-node1.row, node2.col-node1.col)
-
-# class Graph:
-#     def __init__(self, start) -> None:
-#         self.V = []
-#         self.V.append(start)
-#         self.E = []
-
 class RRTBot:
     def __init__(self, epsilon, start, nrow, ncol) -> None:
         self.epsilon = epsilon
@@ -38,15 +20,12 @@ class RRTBot:
     # one iteration of the RRT algorithm
     # Input: None
     # Output: None
-    def rrt_move(self, hwalls, vwalls):
+    def rrt_move(self, hwalls, vwalls, buffer):
         #random sample a node
         q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
-        # q_rand = Node(row=random.randint(self.current_pos.row-5, self.current_pos.row+5), col=random.randint(self.current_pos.row-5, self.current_pos.row+5))
         while q_rand in self.tree.V:
             print("Node already in tree! Try again")
-            # q_rand = Node(row=random.randint(self.current_pos.row-5, self.current_pos.row+5), col=random.randint(self.current_pos.row-5, self.current_pos.row+5))
             q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
-
         #find closest node in tree to random node
         q_curr = self.find_closest_node(q_rand)
         dir = direction(q_curr, q_rand)
@@ -54,7 +33,7 @@ class RRTBot:
         #attempt to grow tree in direction of q_rand a maximum of epsilon
         q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
         possible_edge = (q_curr, q_new)
-        if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new):
+        if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
             q_new.parent = q_curr
             self.tree.V.append(q_new)
             self.current_pos=q_new
@@ -76,6 +55,19 @@ class RRTBot:
                 min_dist = new_dist
                 min_node = node
         return min_node
+    
+    def too_close(self, node, hwalls, vwalls, buffer):
+        for wall in hwalls:
+            if node.col >= wall.llim-buffer and node.col <= wall.ulim+buffer:
+                if node.row >= wall.row-buffer and node.row<=wall.row+buffer:
+                    print("Too close!")
+                    return True
+        for wall in vwalls:
+            if node.row >= wall.llim-buffer and node.row <= wall.ulim+buffer:
+                if node.col>= wall.col-buffer and node.col<=wall.col+buffer:
+                    print("Too close!")
+                    return True
+        return False
 
     # method to determine if a given edge will collide with an obstacle
     # Input: Edge, horizontal wall's list, vertical walls list
@@ -96,23 +88,12 @@ class RRTBot:
         for wall in hwalls:
             l = min(edge[0].row, edge[1].row)
             u = max(edge[0].row, edge[1].row)
-            # if wall.row in np.arange(min(edge[0].row, edge[1].row), max(edge[0].row, edge[1].row)+1, 0.01):
             if wall.row >= l and wall.row <= u:
                 print("Possible collision!")
-                # lower_node = min(edge[0].col, edge[1].col)
-                # upper_node = max(edge[0].col, edge[1].col)
-                # case1 = lower_node>wall.llim and upper_node<wall.ulim
-                # case2 = lower_node<wall.ulim and upper_node<wall.ulim
-                # case3 = lower_node>wall.llim and upper_node>wall.ulim
-                # if case1:
-                #     print("Collision!")
-                #     return True
                 y = wall.row
                 y1 = edge[0].row
                 x1 = edge[0].col
                 point = round((y-y1)/m+x1,2)
-                # print(point)
-                # if round((y-y1)/m+x1,2) in np.arange(wall.llim, wall.ulim+1, 0.01):
                 if point >= wall.llim and point <= wall.ulim:
                     print("H Collision!")
                     # self.collisions += 1
@@ -121,20 +102,11 @@ class RRTBot:
         for wall in vwalls:
             l = min(edge[0].col, edge[1].col)
             u = max(edge[0].col, edge[1].col)
-            # if wall.col in np.arange(min(edge[0].col, edge[1].col), max(edge[0].col, edge[1].col)+1, 0.01):
             if wall.col >= l and wall.col <= u:
-                # lower_node = min(edge[0].row, edge[1].row)
-                # upper_node = max(edge[0].row, edge[1].row)
-                # case1 = lower_node>wall.llim and upper_node<wall.ulim
-                # if case1:
-                #     print("Collision!")
-                #     return True
                 x = wall.col
                 y1 = edge[0].row
                 x1 = edge[0].col
                 point = round(m*(x-x1)+y1,2)
-                # print(point)
-                # if round(m*(x-x1)+y1,2) in np.arange(wall.llim, wall.ulim+1, 0.01):
                 if point >= wall.llim and point <= wall.ulim:
                     print("V Collision!")
                     return True
@@ -210,7 +182,7 @@ def main():
     bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=36, ncol=36)
     while bot.success<500:
         # print(i)
-        bot.rrt_move(hwalls=hwalls,vwalls=vwalls)
+        bot.rrt_move(hwalls=hwalls,vwalls=vwalls, buffer=0.5)
     # print("Collisions: %d" % bot.collisions)
     bot.plot()
     maze_generation.plot(big_maze)
