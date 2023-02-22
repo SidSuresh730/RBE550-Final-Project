@@ -1,33 +1,50 @@
 import numpy as np
-
+import math
 MAX_NODES = 16384
 
-class Node:
-        def __init__(self, row, col):
-            # Row and col location of the Node
-            self.row = row
-            self.col = col
-            self.g = float('Inf')
-            self.h = float('Inf')
-            # list of the neighbors of a particular node
-            self.neighbors = None
-            # List of all Nodes the Node is connected to. Each node is connected to itself
-            self.connected = [self]
-            # parent of the node in a graph
-            self.parent = None
-		
-        def Connect(self, node):
-            self.connected = np.append(self.connected, node)
-		
-        def __str__(self):
-            print(self.row, self.col, "-", end = ' ')
-            for node in self.connected:
-                print(node.row, node.col, ',', end = ' ')
-            return ""
-        
-        def __eq__(self, other):
-            return (self.row, self.col) == (other.row, other.col)
+# function for finding Euclidean distance between nodes
+# Input: Nodes
+# Output: float (Distance)
+def distance(node1, node2):
+    return math.sqrt((node1.col-node2.col)**2 + (node1.row-node2.row)**2)
 
+# function for finding the direction from node 1 to node 2
+# Input: Node 1 and Node 2
+# Output: float (angle of direction)
+def direction(node1, node2):
+    return math.atan2(node2.row-node1.row, node2.col-node1.col)
+
+class Node:
+    def __init__(self, row, col):
+        # Row and col location of the Node
+        self.row = row
+        self.col = col
+        self.g = float('Inf')
+        self.h = float('Inf')
+        # list of the neighbors of a particular node
+        self.neighbors = None
+        # List of all Nodes the Node is connected to. Each node is connected to itself
+        self.connected = [self]
+        # parent of the node in a graph
+        self.parent = None
+    
+    def Connect(self, node):
+        self.connected = np.append(self.connected, node)
+    
+    def __str__(self):
+        print(self.row, self.col, "-", end = ' ')
+        for node in self.connected:
+            print(node.row, node.col, ',', end = ' ')
+        return ""
+    
+    def __eq__(self, other):
+        return (self.row, self.col) == (other.row, other.col)
+
+class Graph:
+    def __init__(self, start) -> None:
+        self.V = []
+        self.V.append(start)
+        self.E = []
 
 class VWall:
     def __init__(self, col, llim, ulim) -> None:
