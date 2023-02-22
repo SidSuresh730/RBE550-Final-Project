@@ -215,7 +215,7 @@ def generate_entrances(maze, num_ent):
 		if ent_loc == 4: # Right side
 			maze[n][num_cols-1] = 3
 		
-def plot(field):
+def plot(field, path):
 	print("Plotting")
 	num_rows = len(field)
 	num_cols = len(field[0])
@@ -244,28 +244,28 @@ def plot(field):
 			if not field[j, i] and not field[j+1, i]:
 				line = np.array([[j, i], [j+1, i]])
 				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')
+
+	data = [] 
+	for n in path:
+		data.append([n.row, n.col])
+	data2 = np.array(data)
+	print(data)
+	if len(data) > 0:
+		plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'g--')
+	
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
 	plt.show()
 
 
-def main():
-	print("Run Maze Generation Main\n")
-	# ---- Generate field with walls ----
-	num_rows = 4 # Number of rows in the maze
-	num_cols = 4 # Number of columns in the maze
-	num_fires_smol = 5 # Number of 1x1 in the maze
-	num_fires_med = 3 # Number of 2x2 in the maze
-	num_fires_lrg = 1 # Number of 3x3 in the maze
-	num_inside = 6 # Number of padding inside each cell
-	num_ent = 2 # Number of entrances to the maze
+def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze):
+	# ---- Make sure maze is large enough for fires desired
 	if num_inside == 1 and (num_fires_med or num_fires_lrg):
 		print("Maze insides too small")
 		sys.exit()
 	if num_inside == 2 and num_fires_lrg:
 		print("Maze insides too small")
 		sys.exit()
-	
 	# ---- Generate maze with all walls active
 	maze = np.zeros((num_rows * 2 + 1, num_cols * 2 + 1))
 	for i in range(num_rows):
@@ -283,7 +283,24 @@ def main():
 	# ---- Generate the entrance to the maze
 	generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
-	plot(big_maze)
+	if plot_maze:
+		plot(big_maze)
+	return big_maze
+	
+def main():
+	print("Run Maze Generation Main\n")
+	# ---- Run Maze Generation code
+	num_rows = 4 # Number of rows in the maze
+	num_cols = 4 # Number of columns in the maze
+	num_fires_smol = 5 # Number of 1x1 in the maze
+	num_fires_med = 3 # Number of 2x2 in the maze
+	num_fires_lrg = 1 # Number of 3x3 in the maze
+	num_inside = 6 # Number of padding inside each cell
+	num_ent = 2 # Number of entrances to the maze
+	plot_maze = True
+	#generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot)
+	
+	
 
 	#print("VWalls")
 	#for i in range(len(vwalls)):

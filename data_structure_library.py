@@ -1,6 +1,11 @@
 import numpy as np
+from math import inf
 
 MAX_NODES = 16384
+
+
+# g: Start node to node n
+# h: node n to end node
 
 class Node:
         def __init__(self, row, col):
@@ -14,6 +19,12 @@ class Node:
             self.connected = [self]
             # parent of the node in a graph
             self.parent = None
+            # Boolean if this node has been visited in the A* algorithm
+            self.visited_astar = False
+            # A Star Heuristic variables
+            self.g = 0
+            self.h = 0
+            self.f = 0
 		
         def Connect(self, node):
             self.connected = np.append(self.connected, node)
@@ -60,6 +71,9 @@ class PriorityQueue:
         # self.mergesort(dict, self.q)
         # print("Added: ",end="")
         # print(element.index)
+        
+    def remove(self, element):
+        self.q.remove(element)
     
     # method for getting min distance element
     # queue is first sorted by decreasing distance and 
@@ -100,3 +114,9 @@ class PriorityQueue:
                 lst[k] = left[j]
                 j+=1
                 k+=1
+                
+    def __str__(self):
+        print("PQ")
+        for n in self.q:
+            print(n)
+        return ""
