@@ -250,7 +250,6 @@ def plot(field, path):
 	for n in path:
 		data.append([n.row, n.col])
 	data2 = np.array(data)
-	print(data)
 	if len(data) > 0:
 		plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
 	

@@ -77,9 +77,9 @@ def main():
 	# ---- Run Maze Generation code
 	num_rows = 10 # Number of rows in the maze
 	num_cols = 10 # Number of columns in the maze
-	num_fires_smol = 0 # Number of 1x1 in the maze
-	num_fires_med = 0 # Number of 2x2 in the maze
-	num_fires_lrg = 0 # Number of 3x3 in the maze
+	num_fires_smol = 5 # Number of 1x1 in the maze
+	num_fires_med = 3 # Number of 2x2 in the maze
+	num_fires_lrg = 1 # Number of 3x3 in the maze
 	num_inside = 5 # Number of padding inside each cell
 	num_ent = 0 # Number of entrances to the maze
 	plot_maze = False
