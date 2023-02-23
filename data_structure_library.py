@@ -21,9 +21,9 @@ class Node:
             self.col = col
             
             # Heuristic variables
-            self.g = float('Inf')
-            self.h = float('Inf')
-            self.f = float('Inf')
+            self.g = math.inf
+            self.h = math.inf
+            self.f = math.inf
             
             # list of the neighbors of a particular node
             self.neighbors = None
@@ -35,13 +35,11 @@ class Node:
         def Connect(self, node):
             self.connected = np.append(self.connected, node)
 		
-		def __eq__(self, other):
-        	return (self.row, self.col) == (other.row, other.col)
+        def __eq__(self, other):
+            return (self.row, self.col) == (other.row, other.col)
 		
         def __str__(self):
             print(self.row, self.col, "-", end = ' ')
-            for node in self.connected:
-                print(node.row, node.col, ',', end = ' ')
             return ""
 
 
@@ -110,11 +108,11 @@ class PriorityQueue:
             div = len(lst)//2
             left = lst[:div]
             right = lst[div:]
-            self.mergesort(dict,left)
-            self.mergesort(dict,right)
+            self.mergesort(left)
+            self.mergesort(right)
             i, j, k = (0,0,0)
             while i<len(right) and j<len(left):
-                if(right[i].g>=left[j].g):
+                if(right[i].f>=left[j].f):
                     lst[k] = right[i]
                     i+=1
                 else:

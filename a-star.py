@@ -11,29 +11,24 @@ from data_structure_library import *
 # g + h = f
 
 def a_star(start, end, maze):
-	Pqueue = PriorityQueue()
-	visited = []
+	pqueue = PriorityQueue()
 	nodes = generate_list_nodes(end, maze)
+	start_node = find_node(start[0], start[1], nodes)
+	start_node.g = 0
+	end_node = find_node(end[0], end[1], nodes)
 	path = []
-	Start = Node(start[0], start[1])
-	Start.g = 0
-	Start.h = 0
-	Start.f = 0
-	current_node = Start
-	prev_node = Start
-	End = Node(end[0], end[1])
-	#Pqueue.add(End)
-	Pqueue.add(Start)
-	while len(Pqueue.q) > 0:
-		prev_node = current_node
-		current_node = Pqueue.get_min_dist_element()
-		if current_node.row == End.row and current_node.col == End.col:
+	current_node = start_node
+	pqueue.add(start_node)
+	# A Star loop
+	while len(pqueue.q) > 0:
+		current_node = pqueue.get_min_dist_element()
+		if current_node == end_node:
 			break
 		neighbors = get_neighbors(current_node, maze, nodes)
 		for n in neighbors:
-			Pqueue.add(n)
+			pqueue.add(n)
 	
-	while current_node != Start:
+	while current_node != start_node:
 		path.append(current_node)
 		current_node = current_node.parent
 	path.append(current_node)
@@ -49,7 +44,6 @@ def generate_list_nodes(end, maze):
 			if maze[i][j]:
 				node = Node(i, j)
 				node.h = math.dist([i, j], end)
-				node.f = node.g + node.h
 				nodes.append(node)
 	return nodes
 
@@ -62,12 +56,12 @@ def get_neighbors(node, field, nodes):
 		row = node.row + row_mod[i]
 		col = node.col + col_mod[i]
 		if field[row][col]:
-			Neighbor = find_node(row, col, nodes)
-			if node.g + 1 < Neighbor.g:
-				Neighbor.g = node.g + 1
-				Neighbor.f = Neighbor.g + Neighbor.h
-				Neighbor.parent = node
-				neighbors.append(Neighbor)
+			neighbor = find_node(row, col, nodes)
+			if node.g + 1 < neighbor.g or neighbor.g == math.inf:
+				neighbor.g = node.g + 1
+				neighbor.f = neighbor.g + neighbor.h
+				neighbor.parent = node
+				neighbors.append(neighbor)
 	return neighbors
 	
 	
@@ -95,14 +89,6 @@ def main():
 	end = [len(maze) - 2, len(maze[0]) - 2]
 	path = a_star(start, end, maze)
 	plot(maze, path)
-	print(start)
-	print(end)
-	# ---- Test Code
-	#field = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
-	#Test_Node = Node(1, 1)
-	#neighbors = get_neighbors(Test_Node, field)
-	#for n in neighbors:
-	#	print(n)
 
 if __name__ == "__main__":
 	main()

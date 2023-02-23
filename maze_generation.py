@@ -252,7 +252,7 @@ def plot(field, path):
 	data2 = np.array(data)
 	print(data)
 	if len(data) > 0:
-		plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'g--')
+		plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
 	
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
@@ -285,7 +285,7 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
 	if plot_maze:
-		plot(big_maze)
+		plot(big_maze, [])
 	return big_maze
 	
 def main():
