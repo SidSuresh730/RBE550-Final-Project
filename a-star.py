@@ -15,6 +15,7 @@ def a_star(start, end, maze):
 	nodes = generate_list_nodes(end, maze)
 	start_node = find_node(start[0], start[1], nodes)
 	start_node.g = 0
+	tree = Graph(start_node)
 	end_node = find_node(end[0], end[1], nodes)
 	path = []
 	current_node = start_node
@@ -24,7 +25,7 @@ def a_star(start, end, maze):
 		current_node = pqueue.get_min_dist_element()
 		if current_node == end_node:
 			break
-		neighbors = get_neighbors(current_node, maze, nodes)
+		neighbors = get_neighbors(current_node, maze, nodes, tree)
 		for n in neighbors:
 			pqueue.add(n)
 	

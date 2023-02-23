@@ -23,19 +23,19 @@ class MapperBot:
             # self.dji_iterations+=1 
             u = queue.get_min_dist_element() #get minimum dist element and remove from queue
             # self.tree.V.append(u)
-            neighbors = get_neighbors(u, maze, nodes)
+            neighbors = get_neighbors(u, maze, nodes, self.tree)
             for v in neighbors: # update neighbor distances as necessary
-                print("There are neighbors")
+                # print("There are neighbors")
                 # if v in queue.q:
                 #     print('v in q')
                 #     alt = u.g + distance(v, u)
                 #     print(alt)
                 #     if alt<v.g:
                 #         print("Shorter path found")
-                self.tree.remove_edge((v.parent, v))
+                # self.tree.remove_edge((v.parent, v))
                 #         v.g = alt
                 #         v.parent = u
-                self.tree.E.append((u,v))
+                # self.tree.E.append((u,v))
                 queue.add(v)
         # while v != s:
         #     path.append(current_node)

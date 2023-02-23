@@ -145,47 +145,60 @@ class RRTBot:
     # method for converting row to numpy array reference frame
     def conv(self, row):
         return self.nrow - row
+
+def plot(field, bot):
+    print("Plotting")
+    num_rows = len(field)
+    num_cols = len(field[0])
+    bot.plot()
+	# Plot all occupancy grid locations
+    for j in range(num_rows): 
+        for i in range(num_cols):
+            if field[j, i] == 0: # Wall
+                plt.plot(i, num_rows - j - 1, 'kx')
+            elif field[j, i] == 1: # Empty
+                plt.plot(i, num_rows - j - 1, 'bx')
+            elif field[j, i] == 2: # Fire
+                plt.plot(i, num_rows - j - 1, 'rx')
+            elif field[j, i] == 3: # Entrance
+                plt.plot(i, num_rows - j - 1, 'gx')
+            else:
+                plt.plot(i, num_rows - j - 1, 'b.')
+	# Plot horizontal walls
+    for j in range(num_rows): 
+        for i in range(num_cols - 1):
+            if not field[j, i] and not field[j, i+1]:
+                line = np.array([[j, i], [j, i+1]])
+                plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')				
+	# Plot vertical walls
+    for j in range(num_rows - 1): 
+        for i in range(num_cols):
+            if not field[j, i] and not field[j+1, i]:
+                line = np.array([[j, i], [j+1, i]])
+                plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')
+    
+    plt.axis([-1, num_cols, -1, num_rows])
+    plt.title("Maze")
+    plt.show()
+
 def main():
-    num_rows = 6 # Number of rows in the maze
-    num_cols = 6 # Number of columns in the maze
+    # ---- Run Maze Generation code
+    num_rows = 10 # Number of rows in the maze
+    num_cols = 10 # Number of columns in the maze
     num_fires_smol = 0 # Number of 1x1 in the maze
     num_fires_med = 0 # Number of 2x2 in the maze
     num_fires_lrg = 0 # Number of 3x3 in the maze
-    num_inside = 5
-    num_ent = 0
-    if num_inside == 1 and (num_fires_med or num_fires_lrg):
-        print("Maze insides too small")
-        sys.exit()
-    if num_inside == 2 and num_fires_lrg:
-        print("Maze insides too small")
-        sys.exit()
-    field = np.zeros((num_rows * 2 + 1, num_cols * 2 + 1))
-    for i in range(num_rows):
-	    for j in range(num_cols):
-	    	field[i*2+1][j*2+1] = 1
-    maze = maze_generation.random_kruskal_maze(field)
-	# ---- Increase maze size ----
-    big_maze = maze_generation.maze_expansion(maze, num_inside)
-    (hwalls, vwalls) = maze_generation.get_list_walls(big_maze)
-    print('HWalls: ')
-    for wall in hwalls:
-        print(wall)
-    print('VWalls: ')
-    for wall in vwalls:
-        print(wall)
-	# ---- Generate the starting fires
-    maze_generation.generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
-	# ---- Generate the entrance to the maze
-    maze_generation.generate_entrances(big_maze, num_ent)
-	# ---- Plot maze ----
-    # maze_generation.plot(big_maze)
-    bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=36, ncol=36)
+    num_inside = 5 # Number of padding inside each cell
+    num_ent = 0 # Number of entrances to the maze
+    plot_maze = False
+    maze = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+    (hwalls, vwalls) = maze_generation.get_list_walls(maze)
+    bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=len(maze)-1, ncol=len(maze[0]))
     while bot.success<500:
         # print(i)
         bot.rrt_move(hwalls=hwalls,vwalls=vwalls, buffer=0.5)
     # print("Collisions: %d" % bot.collisions)
-    bot.plot()
-    maze_generation.plot(big_maze)
+    plot(maze, bot)
 
 if __name__ == "__main__":
 	main()
