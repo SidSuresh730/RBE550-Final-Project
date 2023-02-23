@@ -166,8 +166,9 @@ def get_neighbors(node, field, nodes):
 		col = node.col + col_mod[i]
 		if field[row][col]:
 			Neighbor = find_node(row, col, nodes)
-			if node.g + 1 < Neighbor.g:
-				Neighbor.g = node.g + 1
+			alt = node.g + distance(node, Neighbor)
+			if alt < Neighbor.g:
+				Neighbor.g = alt
 				Neighbor.f = Neighbor.g + Neighbor.h
 				Neighbor.parent = node
 				neighbors.append(Neighbor)
