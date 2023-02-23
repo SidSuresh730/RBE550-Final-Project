@@ -40,42 +40,42 @@ def a_star(start, end, maze):
 	return path
 
 
-def generate_list_nodes(end, maze):
-	num_rows = len(maze)
-	num_cols = len(maze[0])
-	nodes = []
-	for i in range(num_rows):
-		for j in range(num_cols):
-			if maze[i][j]:
-				node = Node(i, j)
-				node.h = math.dist([i, j], end)
-				node.f = node.g + node.h
-				nodes.append(node)
-	return nodes
+# def generate_list_nodes(end, maze):
+# 	num_rows = len(maze)
+# 	num_cols = len(maze[0])
+# 	nodes = []
+# 	for i in range(num_rows):
+# 		for j in range(num_cols):
+# 			if maze[i][j]:
+# 				node = Node(i, j)
+# 				node.h = math.dist([i, j], end)
+# 				node.f = node.g + node.h
+# 				nodes.append(node)
+# 	return nodes
 
 
-def get_neighbors(node, field, nodes):
-	neighbors = []
-	row_mod = [-1, -1, -1, 0, 0, 1, 1, 1]
-	col_mod = [-1, 0, 1, -1, 1, -1, 0, 1]
-	for i in range(8):
-		row = node.row + row_mod[i]
-		col = node.col + col_mod[i]
-		if field[row][col]:
-			Neighbor = find_node(row, col, nodes)
-			if node.g + 1 < Neighbor.g:
-				Neighbor.g = node.g + 1
-				Neighbor.f = Neighbor.g + Neighbor.h
-				Neighbor.parent = node
-				neighbors.append(Neighbor)
-	return neighbors
+# def get_neighbors(node, field, nodes):
+# 	neighbors = []
+# 	row_mod = [-1, -1, -1, 0, 0, 1, 1, 1]
+# 	col_mod = [-1, 0, 1, -1, 1, -1, 0, 1]
+# 	for i in range(8):
+# 		row = node.row + row_mod[i]
+# 		col = node.col + col_mod[i]
+# 		if field[row][col]:
+# 			Neighbor = find_node(row, col, nodes)
+# 			if node.g + 1 < Neighbor.g:
+# 				Neighbor.g = node.g + 1
+# 				Neighbor.f = Neighbor.g + Neighbor.h
+# 				Neighbor.parent = node
+# 				neighbors.append(Neighbor)
+# 	return neighbors
 	
 	
-def find_node(row, col, nodes):
-	for node in nodes:
-		if node.row == row and node.col == col:	
-			return node
-	return 0
+# def find_node(row, col, nodes):
+# 	for node in nodes:
+# 		if node.row == row and node.col == col:	
+# 			return node
+# 	return 0
 
 
 def main():

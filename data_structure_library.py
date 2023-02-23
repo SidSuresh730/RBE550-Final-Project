@@ -35,8 +35,8 @@ class Node:
         def Connect(self, node):
             self.connected = np.append(self.connected, node)
 		
-		def __eq__(self, other):
-        	return (self.row, self.col) == (other.row, other.col)
+        def __eq__(self, other):
+            return (self.row, self.col) == (other.row, other.col)
 		
         def __str__(self):
             print(self.row, self.col, "-", end = ' ')
@@ -50,6 +50,11 @@ class Graph:
         self.V = []
         self.V.append(start)
         self.E = []
+    
+    def remove_edge(self, e):
+        for i in range(len(self.E)):
+            if self.E[i][0] == e[0] and self.E[i][1] == e[1]:
+                self.E.pop(i)
 
 class VWall:
     def __init__(self, col, llim, ulim) -> None:
@@ -97,6 +102,10 @@ class PriorityQueue:
         self.mergesort(self.q)
         if(len(self.q)>0):
             return self.q.pop()
+    
+    def add_list(self, list):
+        for element in list:
+            self.q.append(element)
 
     # Method for sorting queue
     # Time: O(nlogn)
@@ -110,8 +119,8 @@ class PriorityQueue:
             div = len(lst)//2
             left = lst[:div]
             right = lst[div:]
-            self.mergesort(dict,left)
-            self.mergesort(dict,right)
+            self.mergesort(left)
+            self.mergesort(right)
             i, j, k = (0,0,0)
             while i<len(right) and j<len(left):
                 if(right[i].g>=left[j].g):
@@ -135,3 +144,40 @@ class PriorityQueue:
         for n in self.q:
             print(n)
         return ""
+
+def generate_list_nodes(end, maze):
+	num_rows = len(maze)
+	num_cols = len(maze[0])
+	nodes = []
+	for i in range(num_rows):
+		for j in range(num_cols):
+			if maze[i][j]:
+				node = Node(i, j)
+				node.h = math.dist([i, j], end)
+				node.f = node.g + node.h
+				nodes.append(node)
+	return nodes
+
+
+def get_neighbors(node, field, nodes):
+	neighbors = []
+	row_mod = [-1, -1, -1, 0, 0, 1, 1, 1]
+	col_mod = [-1, 0, 1, -1, 1, -1, 0, 1]
+	for i in range(8):
+		row = node.row + row_mod[i]
+		col = node.col + col_mod[i]
+		if field[row][col]:
+			Neighbor = find_node(row, col, nodes)
+			if node.g + 1 < Neighbor.g:
+				Neighbor.g = node.g + 1
+				Neighbor.f = Neighbor.g + Neighbor.h
+				Neighbor.parent = node
+				neighbors.append(Neighbor)
+	return neighbors
+	
+	
+def find_node(row, col, nodes):
+	for node in nodes:
+		if node.row == row and node.col == col:	
+			return node
+	return 0
