@@ -157,7 +157,6 @@ def generate_list_nodes(maze, end):
 					node.h = math.dist([i, j], end)
 				else:
 					node.h = 0
-				node.f = node.g + node.h
 				nodes.append(node)
 	return nodes
 

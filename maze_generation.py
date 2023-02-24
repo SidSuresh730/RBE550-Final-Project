@@ -245,8 +245,9 @@ def plot(field, path, bot):
 			if not field[j, i] and not field[j+1, i]:
 				line = np.array([[j, i], [j+1, i]])
 				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')
-	bot.plot()
-	if(path):
+	if bot:
+		bot.plot()
+	if path:
 		data = [] 
 		for n in path:
 			data.append([n.row, n.col])
@@ -285,7 +286,7 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
 	if plot_maze:
-		plot(big_maze, [])
+		plot(field=big_maze, path=None, bot=None)
 	return big_maze
 	
 def main():
@@ -299,81 +300,9 @@ def main():
 	num_inside = 6 # Number of padding inside each cell
 	num_ent = 2 # Number of entrances to the maze
 	plot_maze = True
-	#generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot)
-	
-	
-
-	#print("VWalls")
-	#for i in range(len(vwalls)):
-	#	print(vwalls[i])
-	#print("HWalls")
-	#for i in range(len(hwalls)):
-	#	print(hwalls[i])
+	generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot)
 
 	# ---- Test code ----
-	#node1 = Node(0, 0)
-	#node1_loc = [0, 0]
-	#node2 = Node(0, 1)
-	#node2_loc = [0, 1]
-	#node3 = Node(1, 0)
-	#node3_loc = [1, 0]
-	#node4 = Node(2, 2)
-	#node4_loc = [2, 2]
-	#node5 = Node(0, 2)
-	#node5_loc = [0, 2]
-	#nodes = [node1, node2, node3, node4, node5]
-	#connect_list(node1, node3, nodes)
-	#print(node1)
-	#print("")
-	#print(node3)
-	#print("\n\n")
-	#connect_list(node2, node1, nodes)
-	#print(node1)
-	#print("")
-	#print(node2)
-	#print("")
-	#print("node3")
-	#print(node3)
-	#print("")
-	#connect_list(node5, node2, nodes)
-	#a = check_connected(node3_loc, node5_loc, nodes)
-	#b = check_connect_list(node3, node5, nodes)
-	#c = check_connect_list(node5, node3, nodes)
-	#d = check_connect_list(node4, node1, nodes)
-	#print(a, b, c, d)
-	#print(node1)
-	#print("")
-	#print(node2)
-	#print("")
-	#print(node3)
-	#print("")
-	#print(node4)
-	#print("")
-	#print(node5)
-	#print("")
-	#print(a)
-	
-	#node1.Connect(node2)
-	#node1.Connect(node3)
-	#node2.Connect(node1)
-	#node3.Connect(node1)
-	#node2.Connect(node5)
-	
-	#a = check_connected(node1_loc, node2_loc, nodes)
-	#b = check_connected(node2_loc, node1_loc, nodes)
-	#c = check_connected(node2_loc, node3_loc, nodes)
-	#d = check_connected(node3_loc, node2_loc, nodes)
-	#e = check_connected(node1_loc, node3_loc, nodes)
-	#f = check_connected(node3_loc, node1_loc, nodes)
-	
-	#g = check_connected(node1_loc, node4_loc, nodes)
-	#h = check_connected(node2_loc, node4_loc, nodes)
-	#i = check_connected(node3_loc, node4_loc, nodes)
-	#j = check_connected(node4_loc, node1_loc, nodes)
-	#k = check_connected(node4_loc, node2_loc, nodes)
-	#l = check_connected(node4_loc, node3_loc, nodes)
-	#print(a, b, c, d, e, f)
-	#print(g, h, i, j, k, l)	
 		
 if __name__ == "__main__":
 	main()
