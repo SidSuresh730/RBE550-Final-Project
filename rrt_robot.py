@@ -6,14 +6,14 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import maze_generation
+from bot import Bot
 
-class RRTBot:
-    def __init__(self, epsilon, start, nrow, ncol) -> None:
+class RRTBot(Bot):
+    def __init__(self, epsilon, start, nrow, ncol, color) -> None:
+        super().__init__(nrow, ncol, color)
         self.epsilon = epsilon
         self.current_pos = start
         self.tree = Graph(start)
-        self.nrow = nrow
-        self.ncol = ncol
         # self.collisions = 0
         self.success = 0
     
@@ -132,19 +132,19 @@ class RRTBot:
         return False
     
     
-    def plot(self):
-        # plot vertices
-        for node in self.tree.V:
-            plt.plot(node.col, self.nrow-node.row, 'rx')
-        for edge in self.tree.E:
-            x_arr = [edge[0].col, edge[1].col]
-            y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]
-            plt.plot(x_arr, y_arr, 'bo', linestyle="--")
-        # plt.show()
+    # def plot(self):
+    #     # plot vertices
+    #     for node in self.tree.V:
+    #         plt.plot(node.col, self.nrow-node.row, 'rx')
+    #     for edge in self.tree.E:
+    #         x_arr = [edge[0].col, edge[1].col]
+    #         y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]
+    #         plt.plot(x_arr, y_arr, 'bo', linestyle="--")
+    #     # plt.show()
     
     # method for converting row to numpy array reference frame
-    def conv(self, row):
-        return self.nrow - row
+    # def conv(self, row):
+    #     return self.nrow - row
 
 def plot(field, bot):
     print("Plotting")
@@ -193,7 +193,7 @@ def main():
     plot_maze = False
     maze = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
     (hwalls, vwalls) = maze_generation.get_list_walls(maze)
-    bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=len(maze)-1, ncol=len(maze[0]))
+    bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=len(maze)-1, ncol=len(maze[0]), color='red')
     while bot.success<500:
         # print(i)
         bot.rrt_move(hwalls=hwalls,vwalls=vwalls, buffer=0.5)

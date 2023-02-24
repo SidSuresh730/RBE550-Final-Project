@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import maze_generation
-class MapperBot:
-    def __init__(self) -> None:
-        # self.node_list = node_list
-        self.tree = None
+from bot import Bot
+class MapperBot(Bot):
+    def __init__(self, nrow, ncol, ls) -> None:
+        super().__init__(nrow, ncol, ls)
 
     def djikstra_map(self,s, end, maze):
         # dist = {}
@@ -43,25 +43,25 @@ class MapperBot:
         # path.append(current_node)
         # return path
 
-    def conv(self, nrow, row):
-        return nrow - row
+    # def conv(self, nrow, row):
+    #     return nrow - row
 
-    def plot(self, nrow):
-        print('Plotting Graph: Dji')
-        # plot vertices
-        for node in self.tree.V:
-            plt.plot(node.col, nrow-node.row, 'rx')
-        for edge in self.tree.E:
-            x_arr = [edge[0].col, edge[1].col]
-            y_arr = [self.conv(nrow, edge[0].row), self.conv(nrow, edge[1].row)]
-            plt.plot(x_arr, y_arr, color='red', linestyle="--")
-        # plt.show()
+    # def plot(self, nrow):
+    #     print('Plotting Graph: Dji')
+    #     # plot vertices
+    #     for node in self.tree.V:
+    #         plt.plot(node.col, nrow-node.row, 'rx')
+    #     for edge in self.tree.E:
+    #         x_arr = [edge[0].col, edge[1].col]
+    #         y_arr = [self.conv(nrow, edge[0].row), self.conv(nrow, edge[1].row)]
+    #         plt.plot(x_arr, y_arr, color='red', linestyle="--")
+    #     # plt.show()
 
 def plot(field, bot):
     print("Plotting")
     num_rows = len(field)
     num_cols = len(field[0])
-    bot.plot(num_rows-1)
+    bot.plot()
 	# Plot all occupancy grid locations
     for j in range(num_rows): 
         for i in range(num_cols):
@@ -108,7 +108,7 @@ def main():
     # start = [1, 1]
     start = Node(1, 1)
     end = [len(maze) - 2, len(maze[0]) - 2]
-    bot = MapperBot()
+    bot = MapperBot(len(maze)-1, len(maze[0]), 'red')
     print('Doing Djikstra')
     bot.djikstra_map(start, end, maze)
     # print(bot.tree.E)
