@@ -37,17 +37,21 @@ class ABot(Bot):
 		while current_node != start_node:
 			path.append(current_node)
 			current_node = current_node.parent
-		path.append(current_node)	
+		path.append(current_node)
+		while len(pqueue.q) > 0:
+			v = pqueue.get_min_dist_element()
+			self.tree.remove_vertex(v)
+			self.tree.remove_edge((v.parent, v))	
 		return path
 
 def main():
 	print("A Star Main\n")
 	# ---- Run Maze Generation code
-	num_rows = 8 # Number of rows in the maze
-	num_cols = 8 # Number of columns in the maze
-	num_fires_smol = 1 # Number of 1x1 in the maze
-	num_fires_med = 1 # Number of 2x2 in the maze
-	num_fires_lrg = 0 # Number of 3x3 in the maze
+	num_rows = 10 # Number of rows in the maze
+	num_cols = 10 # Number of columns in the maze
+	num_fires_smol = 5 # Number of 1x1 in the maze
+	num_fires_med = 3 # Number of 2x2 in the maze
+	num_fires_lrg = 1 # Number of 3x3 in the maze
 	num_inside = 5 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = False
@@ -57,6 +61,7 @@ def main():
 	
 	start = entrances[0]
 	end = fires[0]
+
 	path = bot.a_star(start, end, maze)
 	
 	#start = fires[0]

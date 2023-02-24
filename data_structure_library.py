@@ -55,6 +55,13 @@ class Graph:
 				if self.E[i][0] == e[0] and self.E[i][1] == e[1]:
 					self.E.pop(i)
 					break
+	
+	def remove_vertex(self, v):
+		if v:
+			for i in range(len(self.V)):
+				if self.V[i] == v:
+					self.V.pop(i)
+					break
 
 class VWall:
 	def __init__(self, col, llim, ulim) -> None:
