@@ -17,7 +17,7 @@ class ABot(Bot):
 
 	def a_star(self, start, end, maze):
 		pqueue = PriorityQueue()
-		nodes = generate_list_nodes(end, maze)
+		nodes = generate_list_nodes(maze=maze, end=end)
 		start_node = find_node(start[0], start[1], nodes)
 		start_node.g = 0
 		self.tree = Graph(start_node)
