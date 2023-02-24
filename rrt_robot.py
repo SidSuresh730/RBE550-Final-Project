@@ -191,14 +191,16 @@ def main():
     num_inside = 5 # Number of padding inside each cell
     num_ent = 0 # Number of entrances to the maze
     plot_maze = False
-    maze = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+    [maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
     (hwalls, vwalls) = maze_generation.get_list_walls(maze)
     bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=len(maze)-1, ncol=len(maze[0]), color='red')
-    while bot.success<500:
+    rrt_limit = 500
+    buffer = 1
+    while bot.success<rrt_limit:
         # print(i)
-        bot.rrt_move(hwalls=hwalls,vwalls=vwalls, buffer=0.5)
+        bot.rrt_move(hwalls=hwalls,vwalls=vwalls, buffer=buffer)
     # print("Collisions: %d" % bot.collisions)
     maze_generation.plot(field=maze,path=None, bot=bot)
 
 if __name__ == "__main__":
-	main()
+    main()

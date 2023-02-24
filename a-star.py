@@ -43,20 +43,29 @@ class ABot(Bot):
 def main():
 	print("A Star Main\n")
 	# ---- Run Maze Generation code
-	num_rows = 2 # Number of rows in the maze
-	num_cols = 2 # Number of columns in the maze
-	num_fires_smol = 5 # Number of 1x1 in the maze
-	num_fires_med = 3 # Number of 2x2 in the maze
-	num_fires_lrg = 1 # Number of 3x3 in the maze
+	num_rows = 8 # Number of rows in the maze
+	num_cols = 8 # Number of columns in the maze
+	num_fires_smol = 1 # Number of 1x1 in the maze
+	num_fires_med = 1 # Number of 2x2 in the maze
+	num_fires_lrg = 0 # Number of 3x3 in the maze
 	num_inside = 5 # Number of padding inside each cell
-	num_ent = 0 # Number of entrances to the maze
+	num_ent = 1 # Number of entrances to the maze
 	plot_maze = False
-	maze = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 	# ---- Run A*
-	start = [1, 1]
-	end = [len(maze) - 2, len(maze[0]) - 2]
-	bot = ABot(len(maze)-1, len(maze[0]), color='orange')
+	bot = ABot(len(maze)-1, len(maze[0]), color='cyan')
+	
+	start = entrances[0]
+	end = fires[0]
 	path = bot.a_star(start, end, maze)
+	
+	#start = fires[0]
+	#end = fires[1]
+	#path2 = bot.a_star(start, end, maze)
+	
+	path.reverse()
+	#path2.reverse()
+	#path += path2
 	plot(maze, path, bot)
 
 if __name__ == "__main__":

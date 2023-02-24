@@ -146,6 +146,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 	num_cols = len(maze[0])
 	med_size = 2
 	lrg_size = 3
+	fires = []
 	# Generate 1x1 fires
 	fires_made = 0
 	while fires_made < num_fires_smol:
@@ -154,6 +155,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 		if maze[fire_row][fire_col] == 1:
 			maze[fire_row][fire_col] = 2
 			fires_made += 1
+			fires.append([fire_row, fire_col])
 	# Generate 2x2 fires
 	fires_made = 0
 	while fires_made < num_fires_med:
@@ -169,6 +171,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 				for j in range(med_size):
 					maze[fire_row + i][fire_col + j] = 2
 			fires_made += 1
+			fires.append([fire_row, fire_col])
 	# Generate 3x3 fires
 	fires_made = 0
 	while fires_made < num_fires_lrg:
@@ -184,6 +187,8 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 				for j in range(lrg_size):
 					maze[fire_row + i - 1][fire_col + j - 1] = 2
 			fires_made += 1
+			fires.append([fire_row, fire_col])
+	return fires
 			
 
 def maze_expansion(maze, num_inside):
@@ -204,33 +209,41 @@ def maze_expansion(maze, num_inside):
 def generate_entrances(maze, num_ent):
 	num_rows = len(maze)
 	num_cols = len(maze[0])
+	entrances = []
 	for i in range(num_ent):
 		ent_loc = random.randint(1, 4)
 		n = random.randint(1, num_rows - 1)
 		if ent_loc == 1: # Top side
 			maze[0][n] = 3
+			entrances.append([0, n])
 		if ent_loc == 2: # Bott side
 			maze[num_rows-1][n] = 3
+			entrances.append([num_rows-1, n])
 		if ent_loc == 3: # Left side
 			maze[n][0] = 3
+			entrances.append([n, 0])
 		if ent_loc == 4: # Right side
 			maze[n][num_cols-1] = 3
+			entrances.append([n, num_cols-1])
+	return entrances
 		
 def plot(field, path, bot):
 	print("Plotting")
 	num_rows = len(field)
 	num_cols = len(field[0])
+	ax = plt.axes()
+	ax.set_facecolor("gray")
 	# Plot all occupancy grid locations
 	for j in range(num_rows): 
 		for i in range(num_cols):
 			if field[j, i] == 0: # Wall
-				plt.plot(i, num_rows - j - 1, 'kx')
+				plt.plot(i, num_rows - j - 1, 'ks')
 			elif field[j, i] == 1: # Empty
-				plt.plot(i, num_rows - j - 1, 'bx')
+				plt.plot(i, num_rows - j - 1, 'b.')
 			elif field[j, i] == 2: # Fire
 				plt.plot(i, num_rows - j - 1, 'rx')
 			elif field[j, i] == 3: # Entrance
-				plt.plot(i, num_rows - j - 1, 'gx')
+				plt.plot(i, num_rows - j - 1, 'g.')
 			else:
 				plt.plot(i, num_rows - j - 1, 'b.')
 	# Plot horizontal walls
@@ -238,13 +251,13 @@ def plot(field, path, bot):
 		for i in range(num_cols - 1):
 			if not field[j, i] and not field[j, i+1]:
 				line = np.array([[j, i], [j, i+1]])
-				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')				
+				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-', linewidth=10)				
 	# Plot vertical walls
 	for j in range(num_rows - 1): 
 		for i in range(num_cols):
 			if not field[j, i] and not field[j+1, i]:
 				line = np.array([[j, i], [j+1, i]])
-				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')
+				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-', linewidth=10)
 	if bot:
 		bot.plot()
 	if path:
@@ -278,16 +291,16 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	# ---- Increase maze size ----
 	big_maze = maze_expansion(maze, num_inside)
 	# ---- Generate the starting fires
-	generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
+	fires = generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
 	# ---- Get the list of all walls in the maze
 	(hwalls, vwalls) = get_list_walls(big_maze)
 	#print(walls)
 	# ---- Generate the entrance to the maze
-	generate_entrances(big_maze, num_ent)
+	entrances = generate_entrances(big_maze, num_ent)
 	# ---- Plot maze ----
 	if plot_maze:
 		plot(field=big_maze, path=None, bot=None)
-	return big_maze
+	return [big_maze, fires, entrances]
 	
 def main():
 	print("Run Maze Generation Main\n")

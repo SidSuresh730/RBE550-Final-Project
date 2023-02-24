@@ -165,10 +165,11 @@ def get_neighbors(node, field, nodes, graph):
 	neighbors = []
 	row_mod = [-1, -1, -1, 0, 0, 1, 1, 1]
 	col_mod = [-1, 0, 1, -1, 1, -1, 0, 1]
-	for i in range(8):
+	num_neighbors = min(len(row_mod), len(col_mod))
+	for i in range(num_neighbors):
 		row = node.row + row_mod[i]
 		col = node.col + col_mod[i]
-		if field[row][col]:
+		if row >= 0 and col >= 0 and row < len(field) and col < len(field[0]) and field[row][col]:
 			Neighbor = find_node(row, col, nodes)
 			alt = node.g + distance(node, Neighbor)
 			if alt < Neighbor.g:
