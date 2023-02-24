@@ -216,7 +216,7 @@ def generate_entrances(maze, num_ent):
 		if ent_loc == 4: # Right side
 			maze[n][num_cols-1] = 3
 		
-def plot(field, path):
+def plot(field, path, bot):
 	print("Plotting")
 	num_rows = len(field)
 	num_cols = len(field[0])
@@ -245,14 +245,15 @@ def plot(field, path):
 			if not field[j, i] and not field[j+1, i]:
 				line = np.array([[j, i], [j+1, i]])
 				plt.plot(line[:, 1], num_rows - 1 - line[:, 0], 'k-')
-
-	data = [] 
-	for n in path:
-		data.append([n.row, n.col])
-	data2 = np.array(data)
-	if len(data) > 0:
-		plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
-	
+	bot.plot()
+	if(path):
+		data = [] 
+		for n in path:
+			data.append([n.row, n.col])
+		data2 = np.array(data)
+		if len(data) > 0:
+			plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
+		
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
 	plt.show()

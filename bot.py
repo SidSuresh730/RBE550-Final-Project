@@ -1,6 +1,7 @@
 from data_structure_library import *
 import numpy as np
 import matplotlib.pyplot as plt
+
 class Bot():
     def __init__(self, nrow, ncol, color) -> None:
         self.nrow = nrow
