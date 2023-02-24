@@ -145,7 +145,7 @@ class PriorityQueue:
 			print(n)
 		return ""
 
-def generate_list_nodes(end, maze):
+def generate_list_nodes(maze, end):
 	num_rows = len(maze)
 	num_cols = len(maze[0])
 	nodes = []
@@ -153,7 +153,10 @@ def generate_list_nodes(end, maze):
 		for j in range(num_cols):
 			if maze[i][j]:
 				node = Node(i, j)
-				node.h = math.dist([i, j], end)
+				if(end):
+					node.h = math.dist([i, j], end)
+				else:
+					node.h = 0
 				node.f = node.g + node.h
 				nodes.append(node)
 	return nodes

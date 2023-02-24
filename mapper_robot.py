@@ -10,12 +10,12 @@ class MapperBot(Bot):
     def __init__(self, nrow, ncol, color) -> None:
         super().__init__(nrow, ncol, color)
 
-    def djikstra_map(self,s, end, maze):
+    def djikstra_map(self,s, maze):
         # dist = {}
         # prev = {}
         self.tree = Graph(s)
         queue = PriorityQueue()
-        nodes = generate_list_nodes(end, maze)
+        nodes = generate_list_nodes(maze=maze, end=None)
         s.g = 0
         queue.add(s)
         # While queue not empty
@@ -110,7 +110,7 @@ def main():
     end = [len(maze) - 2, len(maze[0]) - 2]
     bot = MapperBot(len(maze)-1, len(maze[0]), 'red')
     print('Doing Djikstra')
-    bot.djikstra_map(start, end, maze)
+    bot.djikstra_map(start, maze)
     # print(bot.tree.E)
     maze_generation.plot(field=maze, path=None, bot=bot)
     print(start)
