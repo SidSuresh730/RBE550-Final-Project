@@ -24,7 +24,6 @@ class RRTBot(Bot):
         #random sample a node
         q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
         while q_rand in self.tree.V:
-            print("Node already in tree! Try again")
             q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
         #find closest node in tree to random node
         q_curr = self.find_closest_node(q_rand)
@@ -60,12 +59,12 @@ class RRTBot(Bot):
         for wall in hwalls:
             if node.col >= wall.llim-buffer and node.col <= wall.ulim+buffer:
                 if node.row >= wall.row-buffer and node.row<=wall.row+buffer:
-                    print("Too close!")
+                    #print("Too close!")
                     return True
         for wall in vwalls:
             if node.row >= wall.llim-buffer and node.row <= wall.ulim+buffer:
                 if node.col>= wall.col-buffer and node.col<=wall.col+buffer:
-                    print("Too close!")
+                    #print("Too close!")
                     return True
         return False
 
@@ -89,13 +88,13 @@ class RRTBot(Bot):
             l = min(edge[0].row, edge[1].row)
             u = max(edge[0].row, edge[1].row)
             if wall.row >= l and wall.row <= u:
-                print("Possible collision!")
+                #print("Possible collision!")
                 y = wall.row
                 y1 = edge[0].row
                 x1 = edge[0].col
                 point = round((y-y1)/m+x1,2)
                 if point >= wall.llim and point <= wall.ulim:
-                    print("H Collision!")
+                    #print("H Collision!")
                     # self.collisions += 1
                     return True
         #check collision with vertical walls
@@ -108,7 +107,7 @@ class RRTBot(Bot):
                 x1 = edge[0].col
                 point = round(m*(x-x1)+y1,2)
                 if point >= wall.llim and point <= wall.ulim:
-                    print("V Collision!")
+                    #print("V Collision!")
                     return True
         return False
 
@@ -121,13 +120,13 @@ class RRTBot(Bot):
             if(edge[1].col == edge[0].col):
                 if(node.col==edge[0].col):
                     if node.row in np.arange(min(edge[0].row, edge[1].row), max(edge[0].row, edge[1].row)+1, 0.01):
-                            print("On edge vertical!")
+                            #print("On edge vertical!")
                             return True
             elif node.col in np.arange(min(edge[0].col, edge[1].col), max(edge[0].col, edge[1].col)+1, 0.01):
                 # find slope of edge
                 m = (edge[1].row-edge[0].row)/(edge[1].col-edge[0].col)
                 if node.row - edge[0].row == m*(node.col-edge[0].col):
-                    print("On edge!")
+                    #print("On edge!")
                     return True
         return False
     
@@ -183,16 +182,17 @@ class RRTBot(Bot):
 
 def main():
     # ---- Run Maze Generation code
-    num_rows = 10 # Number of rows in the maze
-    num_cols = 10 # Number of columns in the maze
-    num_fires_smol = 0 # Number of 1x1 in the maze
-    num_fires_med = 0 # Number of 2x2 in the maze
+    num_rows = 4 # Number of rows in the maze
+    num_cols = 4 # Number of columns in the maze
+    num_fires_smol = 1 # Number of 1x1 in the maze
+    num_fires_med = 1 # Number of 2x2 in the maze
     num_fires_lrg = 0 # Number of 3x3 in the maze
-    num_inside = 5 # Number of padding inside each cell
-    num_ent = 0 # Number of entrances to the maze
+    num_inside = 2 # Number of padding inside each cell
+    num_ent = 1 # Number of entrances to the maze
     plot_maze = False
     [maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
     (hwalls, vwalls) = maze_generation.get_list_walls(maze)
+    print(entrances)
     bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=len(maze)-1, ncol=len(maze[0]), color='red')
     rrt_limit = 500
     buffer = 1

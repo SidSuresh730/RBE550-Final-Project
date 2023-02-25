@@ -15,8 +15,8 @@ class Bot():
     def plot(self):
         # plot vertices
         for node in self.tree.V:
-            plt.plot(node.col, self.nrow-node.row, 'ro')
+            plt.plot(node.col, self.nrow-node.row, 'r.')
         for edge in self.tree.E:
             x_arr = [edge[0].col, edge[1].col]
             y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]
-            plt.plot(x_arr, y_arr, self.color, linestyle="dotted")
+            plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)

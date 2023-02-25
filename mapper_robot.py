@@ -93,28 +93,23 @@ class MapperBot(Bot):
 #     plt.show()
 
 def main():
-    print("A Star Main\n")
+    print("Dij Main\n")
 	# ---- Run Maze Generation code
-    num_rows = 10 # Number of rows in the maze
-    num_cols = 10 # Number of columns in the maze
-    num_fires_smol = 0 # Number of 1x1 in the maze
-    num_fires_med = 0 # Number of 2x2 in the maze
+    num_rows = 4 # Number of rows in the maze
+    num_cols = 4 # Number of columns in the maze
+    num_fires_smol = 1 # Number of 1x1 in the maze
+    num_fires_med = 1 # Number of 2x2 in the maze
     num_fires_lrg = 0 # Number of 3x3 in the maze
-    num_inside = 5 # Number of padding inside each cell
-    num_ent = 0 # Number of entrances to the maze
+    num_inside = 2 # Number of padding inside each cell
+    num_ent = 1 # Number of entrances to the maze
     plot_maze = False
-    maze = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
-	# ---- Run A*
+    [maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	# ---- Run Dij
     # start = [1, 1]
-    start = Node(1, 1)
-    end = [len(maze) - 2, len(maze[0]) - 2]
+    start = Node(entrances[0][0], entrances[0][1])
     bot = MapperBot(len(maze)-1, len(maze[0]), 'red')
-    print('Doing Djikstra')
     bot.djikstra_map(start, maze)
-    # print(bot.tree.E)
     maze_generation.plot(field=maze, path=None, bot=bot)
-    print(start)
-    print(end)
 
 if __name__ == "__main__":
 	main()

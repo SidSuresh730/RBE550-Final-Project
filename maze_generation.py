@@ -243,9 +243,9 @@ def plot(field, path, bot):
 			elif field[j, i] == 2: # Fire
 				plt.plot(i, num_rows - j - 1, 'rx')
 			elif field[j, i] == 3: # Entrance
-				plt.plot(i, num_rows - j - 1, 'g.')
+				plt.plot(i, num_rows - j - 1, 'go')
 			else:
-				plt.plot(i, num_rows - j - 1, 'b.')
+				plt.plot(i, num_rows - j - 1, 'yx')
 	# Plot horizontal walls
 	for j in range(num_rows): 
 		for i in range(num_cols - 1):
@@ -288,15 +288,16 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 			maze[i*2+1][j*2+1] = 1
 	# ---- Turn field into maze ----
 	maze = random_kruskal_maze(maze)
+
 	# ---- Increase maze size ----
 	big_maze = maze_expansion(maze, num_inside)
 	# ---- Generate the starting fires
 	fires = generate_fires(big_maze, num_fires_smol, num_fires_med, num_fires_lrg)
-	# ---- Get the list of all walls in the maze
-	(hwalls, vwalls) = get_list_walls(big_maze)
 	#print(walls)
 	# ---- Generate the entrance to the maze
 	entrances = generate_entrances(big_maze, num_ent)
+	# ---- Get the list of all walls in the maze
+	(hwalls, vwalls) = get_list_walls(big_maze)
 	# ---- Plot maze ----
 	if plot_maze:
 		plot(field=big_maze, path=None, bot=None)
@@ -310,10 +311,10 @@ def main():
 	num_fires_smol = 5 # Number of 1x1 in the maze
 	num_fires_med = 3 # Number of 2x2 in the maze
 	num_fires_lrg = 1 # Number of 3x3 in the maze
-	num_inside = 6 # Number of padding inside each cell
-	num_ent = 2 # Number of entrances to the maze
+	num_inside = 3 # Number of padding inside each cell
+	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot)
+	[maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 
 	# ---- Test code ----
 		
