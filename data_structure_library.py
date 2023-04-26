@@ -128,7 +128,7 @@ class PriorityQueue:
 			right = lst[div:]
 			self.mergesort(left)
 			self.mergesort(right)
-			i, j, k = (0,0,0)
+			i, j, k = (0,0,0) #self.row, self.col) == (other.row, other.col)
 			while i<len(right) and j<len(left):
 				if(right[i].f>=left[j].f):
 					lst[k] = right[i]
