@@ -47,7 +47,7 @@ class Node:
 			# parent of the node in a graph
 			self.parent = None
 
-			# commands            
+			# rrt conditions            
 		
 		def Connect(self, node):
 			self.connected = np.append(self.connected, node)

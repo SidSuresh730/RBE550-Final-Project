@@ -11,32 +11,66 @@ class Bot():
 		self.tree = None
 		self.color = color
 
-		self.radius=0.5
+		self.radius=0.25
 		self._x=x
 		self._y=y
 		self._theta=theta
 		self._dt=0.1
 
-	# def bot_detect(self,x,y,box):
-	# 	# assume corners given in clockwise direction starting in top left
-	# 	[c1,c2,c3,c4] = box
-	# 	cx = 0.5*(c1[0]+c3[0])
-	# 	cy = 0.5*(c1[1]+c3[1])
-	# 	rx=abs(0.5*(c2[0]-c1[0]))
-	# 	ry=abs(0.5*(c4[1]-c1[1]))
-	# 	if abs(y-cy)>ry+self.radius:
-	# 		return False
-	# 	if abs(x-cx)>rx+self.radius:
-	# 		return False
-	# 	return True		
+	def collision_detect(self,x,y,hwalls,vwalls):
+		# assume corners given in clockwise direction starting in top left
+		for wall in hwalls:
+			xmin=wall.llim
+			xmax=wall.ulim+1
+			ymin=wall.row
+			ymax=wall.row+1
+			corners = np.array([(xmin,ymax),(xmax,ymax),(xmax,ymin),(xmin,ymin)])
+			[c1,c2,c3,c4] = corners
+			cx = 0.5*(c1[0]+c3[0])
+			cy = 0.5*(c1[1]+c3[1])
+			rx=abs(0.5*(c2[0]-c1[0]))
+			ry=abs(0.5*(c4[1]-c1[1]))
+			if abs(y-cy)>ry+self.radius:
+				return False
+			if abs(x-cx)>rx+self.radius:
+				return False
+		for wall in vwalls:
+			ymin=wall.llim
+			ymax=wall.ulim+1
+			xmin=wall.col-5
+			xmax=wall.col+5
+			corners=np.array([(xmin,ymax),(xmax,ymax),(xmax,ymin),(xmin,ymin)])
+			[c1,c2,c3,c4] = corners
+			cx = 0.5*(c1[0]+c3[0])
+			cy = 0.5*(c1[1]+c3[1])
+			rx=abs(0.5*(c2[0]-c1[0]))
+			ry=abs(0.5*(c4[1]-c1[1]))
+			if abs(y-cy)>ry+self.radius:
+				return False
+			if abs(x-cx)>rx+self.radius:
+				return False
+		return True		
+		corners = np.concatenate((corners,corners2))
+		for corner in corners:
+			[c1,c2,c3,c4] = corner
+			cx = 0.5*(c1[0]+c3[0])
+			cy = 0.5*(c1[1]+c3[1])
+			rx=abs(0.5*(c2[0]-c1[0]))
+			ry=abs(0.5*(c4[1]-c1[1]))
+			if abs(y-cy)>ry+self.radius:
+				return False
+			if abs(x-cx)>rx+self.radius:
+				return False
+		return True		
 
-	def collision_detect(self,x,y,maze):
-		points=np.array([(x-self.radius,y-self.radius),(x-self.radius,y+self.radius),(x+self.radius,y-self.radius),(x+self.radius,y+self.radius)])
-		for point in points:
-			(x,y)=self.cell(x=point[0],y=point[1])
-			if maze[y,x]==OB_NORM:
-				return True
-		return False
+	# def collision_detect(self,x,y,maze):
+	# 	print("Bot: collision detect")
+	# 	points=np.array([(x-self.radius,y-self.radius),(x-self.radius,y+self.radius),(x+self.radius,y-self.radius),(x+self.radius,y+self.radius)])
+	# 	for point in points:
+	# 		(x,y)=self.cell(x=point[0],y=point[1])
+	# 		if maze[x,self.conv(y)]==OB_NORM:
+	# 			return True
+	# 	return False
 		
 	def kin_move(self, u_omega, u_psi):	
 		# calculate deltas based on nonholonomic constraints of diwheel robot
@@ -89,10 +123,10 @@ class Bot():
 		return [x, y, theta, collision, count]
 	
 	# local planner to get mainshaft movement commands
-	def local_planner(self,pos1,pos2,maze):
+	def local_planner(self,pos1,pos2,hwalls,vwalls):
 		dir=direction(pos1,pos2)
 		dis=distance(pos1,pos2)
-		(x,y) = (pos1.col,pos1.row)
+		(x,y) = (pos1.col,self.conv(pos1.row))
 		commands = []
 		num_steps=dis//self._dt
 		num_iter=int(num_steps)
@@ -100,11 +134,13 @@ class Bot():
 		for i in range(num_iter):
 			x+=dis/num_iter*cos(dir)
 			y+=dis/num_iter*sin(dir)
-			if self.collision_detect(x,y,maze):
+			# y=self.conv(y)
+			if self.collision_detect(x,y,hwalls,vwalls):
 				return False
 		x+=remainder*cos(dir)
 		y+=remainder*sin(dir)
-		if self.collision_detect(x,y,maze):
+		# y=self.conv(y)
+		if self.collision_detect(x,y,hwalls,vwalls):
 			return False
 		return True
 
@@ -114,7 +150,7 @@ class Bot():
 	def plot(self):
 		# plot vertices
 		for node in self.tree.V:
-			plt.plot(node.col, self.nrow-node.row, 'r.')
+			plt.plot(node.col, self.conv(node.row), 'r.')
 		for edge in self.tree.E:
 			x_arr = [edge[0].col, edge[1].col]
 			y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]

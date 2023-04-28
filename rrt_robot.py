@@ -20,10 +20,12 @@ class RRTBot(Bot):
 	# one iteration of the RRT algorithm
 	# Input: None
 	# Output: None
-	def rrt_search(self, maze, buffer):
+	def rrt_search(self, hwalls,vwalls, buffer):
 		#random sample a node
 		frontiers = []
+		num_fail=0
 		while self.success<100:
+			print(self.success)
 			q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
 			while q_rand in self.tree.V:
 				q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
@@ -35,12 +37,21 @@ class RRTBot(Bot):
 			q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
 			possible_edge = (q_curr, q_new)
 			# if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
-			if self.local_planner(q_curr,q_new,maze):
+			if self.local_planner(q_curr,q_new,hwalls,vwalls):
 				q_new.parent = q_curr
 				self.tree.V.append(q_new)
 				self.current_pos=q_new
 				self.tree.E.append(possible_edge)
 				self.success+=1
+			else:
+				num_fail+=1
+				if num_fail>10000:
+					break
+		print("Failures: %d" % num_fail)
+		# if num_fail>99:
+		# 	self.plot()
+		self.success=0
+		return frontiers
 
 	# method for finding closest node in tree to randomly generated node
 	# Input: Randomly generated node
@@ -129,96 +140,7 @@ class RRTBot(Bot):
 					#print("On edge!")
 					return True
 		return False
-	
-
-	# method for finding closest node in tree to randomly generated node
-	# Input: Randomly generated node
-	# Output: Closest node in tree to the random node
-	def find_closest_node(self, q_rand):
-		min_dist = float('Inf')
-		min_node = None
-		for node in self.tree.V:
-			new_dist = distance(node, q_rand)
-			if new_dist < min_dist:
-				min_dist = new_dist
-				min_node = node
-		return min_node
-	
-	def too_close(self, node, hwalls, vwalls, buffer):
-		for wall in hwalls:
-			if node.col >= wall.llim-buffer and node.col <= wall.ulim+buffer:
-				if node.row >= wall.row-buffer and node.row<=wall.row+buffer:
-					#print("Too close!")
-					return True
-		for wall in vwalls:
-			if node.row >= wall.llim-buffer and node.row <= wall.ulim+buffer:
-				if node.col>= wall.col-buffer and node.col<=wall.col+buffer:
-					#print("Too close!")
-					return True
-		return False
-
-	# method to determine if a given edge will collide with an obstacle
-	# Input: Edge, horizontal wall's list, vertical walls list
-	# Output: Boolean (True: Will collide, False: Will NOT collide)
-	def will_collide(self,edge, hwalls, vwalls) -> bool:
-		# check if vertical edge
-		if(edge[1].col == edge[0].col):
-			for wall in hwalls:
-				l = min(edge[0].row, edge[1].row)
-				u = max(edge[0].row, edge[1].row)
-				if edge[0].col>=wall.llim and edge[0].col<=wall.ulim:
-					if l <= wall.row and u >= wall.row:
-						return True
-			return False
-		#find slope of edge
-		m = (edge[1].row-edge[0].row)/(edge[1].col-edge[0].col)
-		#check collision with horizontal walls
-		for wall in hwalls:
-			l = min(edge[0].row, edge[1].row)
-			u = max(edge[0].row, edge[1].row)
-			if wall.row >= l and wall.row <= u:
-				#print("Possible collision!")
-				y = wall.row
-				y1 = edge[0].row
-				x1 = edge[0].col
-				point = round((y-y1)/m+x1,2)
-				if point >= wall.llim and point <= wall.ulim:
-					#print("H Collision!")
-					# self.collisions += 1
-					return True
-		#check collision with vertical walls
-		for wall in vwalls:
-			l = min(edge[0].col, edge[1].col)
-			u = max(edge[0].col, edge[1].col)
-			if wall.col >= l and wall.col <= u:
-				x = wall.col
-				y1 = edge[0].row
-				x1 = edge[0].col
-				point = round(m*(x-x1)+y1,2)
-				if point >= wall.llim and point <= wall.ulim:
-					#print("V Collision!")
-					return True
-		return False
-
-	# method to determine if a node lies on a current edge of the tree
-	# Input: node to add to tree
-	# Output: Boolean (True: there is an edge that the node would coincide with, False: No edge)
-	def lies_on_edge(self, node):
-		for edge in self.tree.E:
-			# check if vertical edge
-			if(edge[1].col == edge[0].col):
-				if(node.col==edge[0].col):
-					if node.row in np.arange(min(edge[0].row, edge[1].row), max(edge[0].row, edge[1].row)+1, 0.01):
-							#print("On edge vertical!")
-							return True
-			elif node.col in np.arange(min(edge[0].col, edge[1].col), max(edge[0].col, edge[1].col)+1, 0.01):
-				# find slope of edge
-				m = (edge[1].row-edge[0].row)/(edge[1].col-edge[0].col)
-				if node.row - edge[0].row == m*(node.col-edge[0].col):
-					#print("On edge!")
-					return True
-		return False
-	
+		
 def main():
 	# ---- Run Maze Generation code
 	num_rows = 3 # Number of rows in the maze
@@ -245,9 +167,9 @@ def main():
 	bot = RRTBot(epsilon= 1, start=start, nrow=len(maze)-1, ncol=len(maze[0]), color='cyan', x=0, y=0, theta=0)
 	rrt_limit = 500
 	buffer = .5
-	while bot.success<rrt_limit:
-		print(bot.success)
-		bot.rrt_search(maze, buffer=buffer)
+	# while bot.success<rrt_limit:
+		# print(bot.success)
+	bot.rrt_search(hwalls, vwalls, buffer=buffer)
 	
 	maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
 
