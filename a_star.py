@@ -11,8 +11,8 @@ from bot import Bot
 # g + h = f
 
 class ABot(Bot):
-	def __init__(self, nrow, ncol, color) -> None:
-		super().__init__(nrow, ncol, color)
+	def __init__(self, nrow, ncol, color, x, y, theta) -> None:
+		super().__init__(nrow, ncol, color, x, y, theta)
 
 
 	def a_star(self, start, end, maze):
@@ -49,25 +49,26 @@ def main():
 	# ---- Run Maze Generation code
 	num_rows = 4 # Number of rows in the maze
 	num_cols = 4 # Number of columns in the maze
-	num_fires_smol = 1 # Number of 1x1 in the maze
-	num_fires_med = 0 # Number of 2x2 in the maze
-	num_fires_lrg = 0 # Number of 3x3 in the maze
-	num_inside = 2 # Number of padding inside each cell
+	num_fires_smol = 5 # Number of 1x1 in the maze
+	num_fires_med = 3 # Number of 2x2 in the maze
+	num_fires_lrg = 1 # Number of 3x3 in the maze
+	num_inside = 10 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = False
 	[maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 	
+	
 	# ---- Run A*
-	bot = ABot(len(maze)-1, len(maze[0]), color='cyan')
+	bot = ABot(len(maze)-1, len(maze[0]), color="cyan", x=0, y=0, theta=0)
 	start = entrances[0]
-	end = fires[0]
+	end = [1, 1]
 	path = bot.a_star(start, end, maze)
 
 	
 	path.reverse()
 	#path2.reverse()
 	#path += path2
-	maze_generation.plot(maze, path, bot)
+	maze_generation.plot(maze, path, bot, fires)
 
 if __name__ == "__main__":
 	main()

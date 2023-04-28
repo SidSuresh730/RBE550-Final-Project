@@ -5,10 +5,12 @@ from math import sin,cos,radians,degrees,pi
 
 class Bot():
 	def __init__(self, nrow, ncol, color,x,y,theta) -> None:
+
 		self.nrow = nrow
 		self.ncol = ncol
 		self.tree = None
 		self.color = color
+
 		self.radius=0.5
 		self._x=x
 		self._y=y
@@ -106,7 +108,6 @@ class Bot():
 			return False
 		return True
 
-	
 	def conv(self, row):
 		return self.nrow - row
 	
@@ -118,6 +119,7 @@ class Bot():
 			x_arr = [edge[0].col, edge[1].col]
 			y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]
 			plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)
+
 	
 	# method for defining a cell that is useful for the algorithm
 	def cell(self, x, y):
@@ -125,4 +127,3 @@ class Bot():
 		r = y//1
 		c = x//1
 		return (c, r)
-

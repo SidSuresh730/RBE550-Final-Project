@@ -2,10 +2,11 @@ import random
 import sys
 import numpy as np
 import matplotlib.pyplot as plt # Plotting our obstacle grid
+import matplotlib.patches as patches
 from matplotlib.path import Path # Plotting our search algorithm path
 from math import inf # Used for infinity
 
-from data_structure_library import Node, VWall, HWall
+from data_structure_library import Node, Fire, VWall, HWall
 
 empty_list = np.array([])
 
@@ -155,7 +156,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 		if maze[fire_row][fire_col] == 1:
 			maze[fire_row][fire_col] = 2
 			fires_made += 1
-			fires.append([fire_row, fire_col])
+			fires.append(Fire(fire_row, fire_col, 1))
 	# Generate 2x2 fires
 	fires_made = 0
 	while fires_made < num_fires_med:
@@ -164,14 +165,14 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 		fire_col = random.randint(0, num_rows-2)
 		for i in range(med_size): 
 			for j in range(med_size):
-				if maze[fire_row + i][fire_col + j] == 1:
+				if maze[fire_row - i][fire_col + j] == 1:
 					count +=1
 		if count >= med_size*med_size:
 			for i in range(med_size): 
 				for j in range(med_size):
-					maze[fire_row + i][fire_col + j] = 2
+					maze[fire_row - i][fire_col + j] = 2
 			fires_made += 1
-			fires.append([fire_row, fire_col])
+			fires.append(Fire(fire_row, fire_col, med_size))
 	# Generate 3x3 fires
 	fires_made = 0
 	while fires_made < num_fires_lrg:
@@ -187,7 +188,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 				for j in range(lrg_size):
 					maze[fire_row + i - 1][fire_col + j - 1] = 2
 			fires_made += 1
-			fires.append([fire_row, fire_col])
+			fires.append(Fire(fire_row, fire_col, lrg_size))
 	return fires
 			
 
@@ -227,7 +228,7 @@ def generate_entrances(maze, num_ent):
 			entrances.append([n, num_cols-1])
 	return entrances
 		
-def plot(field, path, bot):
+def plot(field, path, bot, fires):
 	print("Plotting")
 	num_rows = len(field)
 	num_cols = len(field[0])
@@ -267,14 +268,30 @@ def plot(field, path, bot):
 		data2 = np.array(data)
 		if len(data) > 0:
 			plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
+	if fires:
+		for fire in fires:
+			if fire.size == 1:
+				#print("Fire def", fire)
+				rect = patches.Rectangle((fire.col-.25, num_rows-fire.row-1.25), width=.5, height=.5, linewidth=1, edgecolor='r', facecolor='none')
+				ax.add_patch(rect)
+			if fire.size == 2:
+				#print("Fire def", fire)
+				rect = patches.Rectangle((fire.col, num_rows-fire.row-1), width=1, height=1, linewidth=1, edgecolor='r', facecolor='none')
+				ax.add_patch(rect)
+			if fire.size == 3:
+				#print("Fire def", fire)
+				rect = patches.Rectangle((fire.col-1, num_rows-fire.row-2), width=2, height=2, linewidth=1, edgecolor='r', facecolor='none')
+				ax.add_patch(rect)
+	
+	
 		
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
 	plt.show()
 
-
 def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze):
 	# ---- Make sure maze is large enough for fires desired
+	print("Generating Maze")
 	if num_inside == 1 and (num_fires_med or num_fires_lrg):
 		print("Maze insides too small")
 		sys.exit()
@@ -300,7 +317,7 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	(hwalls, vwalls) = get_list_walls(big_maze)
 	# ---- Plot maze ----
 	if plot_maze:
-		plot(field=big_maze, path=None, bot=None)
+		plot(field=big_maze, path=None, bot=None, fires=fires)
 	return [big_maze, fires, entrances]
 	
 def main():

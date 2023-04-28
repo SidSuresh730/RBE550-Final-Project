@@ -78,6 +78,9 @@ class Graph:
 				if self.V[i] == v:
 					self.V.pop(i)
 					break
+	
+	def print_edge(self, e):
+		print(e[0], e[1])
 
 class VWall:
 	def __init__(self, col, llim, ulim) -> None:
@@ -166,6 +169,22 @@ class PriorityQueue:
 		print("PQ")
 		for n in self.q:
 			print(n)
+		return ""
+
+class Fire:
+	def __init__(self, row, col, size):
+		# Row and col location of the Node
+		self.row = row
+		self.col = col
+		self.size = size
+		
+		self.active = True
+			
+	def extinguish(self):
+		self.active = False
+		
+	def __str__(self):
+		print(self.row, self.col, self.size, "-", end = ' ')
 		return ""
 
 def generate_list_nodes(maze, end):
