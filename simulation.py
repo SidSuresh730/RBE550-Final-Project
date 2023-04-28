@@ -5,11 +5,12 @@ from maze_generation import *
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from scipy.interpolate import splprep,splev
 import random
 import pygame
+from rrt_robot import *
+from mapper_robot import *
+from fire_fighting_robot import *
 from time import process_time
-from scipy.spatial import KDTree
 # States of grid/obstacles
 EMPTY = 0
 OB_NORM = 1
@@ -44,7 +45,7 @@ class Simulation:
 		self.num_fires_lrg = lrg # Number of 3x3 in the maze
 		self.num_inside = num_inside # Number of padding inside each cell
 		self.num_ent = num_ent # Number of entrances to the maze
-		self.plot_maze = True
+		self.plot_maze = False
 		[self.maze, self.fires, self.entrances] = generate_maze(self.num_rows, self.num_cols, self.num_fires_smol, self.num_fires_med, self.num_fires_lrg, self.num_inside, self.num_ent, self.plot_maze)
 		nrow=len(self.maze)
 		ncol=len(self.maze[0])
@@ -56,7 +57,6 @@ class Simulation:
 	# 	self.wall_thickness=thickness
 	def add_bot(self,bot):
 		self.robots.append(bot)
-
 
 	def draw_field(self):
 		left = self.offset[0]
@@ -84,26 +84,12 @@ class Simulation:
 			xmax=wall.col+self.wall_thickness
 			corners=np.array([(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)])
 			pygame.draw.polygon(surface=WIN,color=BLACK,points=self.pixel_factor*corners+self.offset)
-			# for node in self.index_list:
-			# x=node[1]*factor
-			# y=node[0]*factor
-			# corners = np.array([(x,y), (x+factor-1,y),(x+factor-1,y+factor-1),(x,y+factor-1)])
-		# for obstacle in self.field.obstacle_list:
-		# 	blocklist = obstacle.get_corners()
-		# 	color = None
-		# 	if obstacle.state == OB_NORM:
-		# 		color = GREEN
-		# 	elif obstacle.state == OB_BURN:
-		# 		color = RED
-		# 	elif obstacle.state == OB_EXT:
-		# 		color = DARK_GREEN
-		# 	elif obstacle.state == OB_BURNED:
-		# 		color = BLACK
-		# 	else:
-		# 		color = GREEN
-		# 	for corners in blocklist:
-		# 		corners = corners*self.pixel_factor
-		# 		pygame.draw.polygon(surface=WIN,color=color,points=corners+self.offset,width=0) # width = 0 to fill
+
+	def draw_robot(self, bot):
+		(x,y,theta,r)=(bot._x,bot._y,bot._theta,bot.radius)
+		point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
+		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
+		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
 
 	def draw_window(self):
 		# pygame.init()
@@ -112,13 +98,28 @@ class Simulation:
 		self.draw_field()
 		# print obstacles
 		self.draw_obstacles()
-		# print wumpus
-		# self.draw_wumpus()
+		# print robots
+		for b in self.robots:
+			self.draw_robot(b)
 		# # print Firetruck
 		# self.draw_firetruck()
 		pygame.display.update()
 def main():
-	sim = Simulation(nrows=4,ncols=4,smol=5,med=3,lrg=1,num_inside=10,num_ent=1,pixel_factor=20)
+	nrows=4
+	ncols=4
+	smol=5
+	med=3
+	lrg=1
+	num_inside=10
+	num_ent=1
+	pixel_factor=20
+	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
+	start=Node(row=2, col=2)
+	theta=0
+	x=start.col
+	y=start.row
+	bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=nrows, ncol=ncols, color=RED,x=x,y=y,theta=theta)
+	sim.add_bot(bot)
 	while True:	
 		sim.draw_window()
 if __name__== "__main__":

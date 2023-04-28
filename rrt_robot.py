@@ -9,8 +9,8 @@ import maze_generation
 from bot import Bot
 
 class RRTBot(Bot):
-    def __init__(self, epsilon, start, nrow, ncol, color) -> None:
-        super().__init__(nrow, ncol, color)
+    def __init__(self, epsilon, start, nrow, ncol, color,x,y,theta) -> None:
+        super().__init__(nrow, ncol, color,x,y,theta)
         self.epsilon = epsilon
         self.current_pos = start
         self.tree = Graph(start)

@@ -42,7 +42,6 @@ class Node:
 			print(self.row, self.col, "-", end = ' ')
 			return ""
 
-
 class Graph:
 	def __init__(self, start) -> None:
 		self.V = []
