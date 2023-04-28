@@ -17,7 +17,7 @@ class Bot():
 		self._theta=theta
 		self._dt=0.1
 
-	# def _aabb_collision(self,x,y,box):
+	# def bot_detect(self,x,y,box):
 	# 	# assume corners given in clockwise direction starting in top left
 	# 	[c1,c2,c3,c4] = box
 	# 	cx = 0.5*(c1[0]+c3[0])

@@ -22,27 +22,25 @@ class RRTBot(Bot):
 	# Output: None
 	def rrt_search(self, maze, buffer):
 		#random sample a node
-		q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
-		while q_rand in self.tree.V:
+		frontiers = []
+		while self.success<100:
 			q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
-		#find closest node in tree to random node
-		q_curr = self.find_closest_node(q_rand)
-		dir = direction(q_curr, q_rand)
-		dis = distance(q_curr, q_rand)
-		#attempt to grow tree in direction of q_rand a maximum of epsilon
-		q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
-		possible_edge = (q_curr, q_new)
-
-		# if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
-		if self.local_planner(q_curr,q_new,maze):
-			q_new.parent = q_curr
-			self.tree.V.append(q_new)
-			self.current_pos=q_new
-			self.tree.E.append(possible_edge)
-			self.success+=1
-			# print(possible_edge[0])
-			# print(possible_edge[1])
-			# self.plot()
+			while q_rand in self.tree.V:
+				q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
+			#find closest node in tree to random node
+			q_curr = self.find_closest_node(q_rand)
+			dir = direction(q_curr, q_rand)
+			dis = distance(q_curr, q_rand)
+			#attempt to grow tree in direction of q_rand a maximum of epsilon
+			q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
+			possible_edge = (q_curr, q_new)
+			# if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
+			if self.local_planner(q_curr,q_new,maze):
+				q_new.parent = q_curr
+				self.tree.V.append(q_new)
+				self.current_pos=q_new
+				self.tree.E.append(possible_edge)
+				self.success+=1
 
 	# method for finding closest node in tree to randomly generated node
 	# Input: Randomly generated node
