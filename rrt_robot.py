@@ -11,7 +11,7 @@ from bot import Bot
 class RRTBot(Bot):
 	def __init__(self, epsilon, start, nrow, ncol, color,x ,y ,theta) -> None:
 		super().__init__(nrow, ncol, color,x,y,theta)
-		self.epsilon = epsilon
+		self.epsilon = 1 #epsilon
 		self.current_pos = start
 		self.tree = Graph(start)
 		# self.collisions = 0
@@ -34,20 +34,20 @@ class RRTBot(Bot):
 			dir = direction(q_curr, q_rand)
 			dis = distance(q_curr, q_rand)
 			#attempt to grow tree in direction of q_rand a maximum of epsilon
-			q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
+			q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
 			possible_edge = (q_curr, q_new)
 			# if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
-			if self.local_planner(q_curr,q_new,hwalls,vwalls):
+			if self.local_planner(q_curr,q_new,hwalls,vwalls,buffer=buffer):
 				q_new.parent = q_curr
 				self.tree.V.append(q_new)
 				self.current_pos=q_new
 				self.tree.E.append(possible_edge)
 				self.success+=1
-			else:
-				num_fail+=1
-				if num_fail>10000:
-					break
-		print("Failures: %d" % num_fail)
+			# else:
+			# 	num_fail+=1
+			# 	if num_fail>10000:
+			# 		break
+		# print("Failures: %d" % num_fail)
 		# if num_fail>99:
 		# 	self.plot()
 		self.success=0
@@ -172,6 +172,6 @@ def main():
 	bot.rrt_search(hwalls, vwalls, buffer=buffer)
 	
 	maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
-
+	# plt.show()
 if __name__ == "__main__":
 	main()
