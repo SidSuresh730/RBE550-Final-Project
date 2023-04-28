@@ -15,18 +15,26 @@ class Bot():
 		self._theta=theta
 		self._dt=0.1
 
-	def _aabb_collision(self,x,y,box):
-		# assume corners given in clockwise direction starting in top left
-		[c1,c2,c3,c4] = box
-		cx = 0.5*(c1[0]+c3[0])
-		cy = 0.5*(c1[1]+c3[1])
-		rx=abs(0.5*(c2[0]-c1[0]))
-		ry=abs(0.5*(c4[1]-c1[1]))
-		if abs(y-cy)>ry+self.radius:
-			return False
-		if abs(x-cx)>rx+self.radius:
-			return False
-		return True		
+	# def _aabb_collision(self,x,y,box):
+	# 	# assume corners given in clockwise direction starting in top left
+	# 	[c1,c2,c3,c4] = box
+	# 	cx = 0.5*(c1[0]+c3[0])
+	# 	cy = 0.5*(c1[1]+c3[1])
+	# 	rx=abs(0.5*(c2[0]-c1[0]))
+	# 	ry=abs(0.5*(c4[1]-c1[1]))
+	# 	if abs(y-cy)>ry+self.radius:
+	# 		return False
+	# 	if abs(x-cx)>rx+self.radius:
+	# 		return False
+	# 	return True		
+
+	def collision_detect(self,x,y,maze):
+		points=np.array([(x-self.radius,y-self.radius),(x-self.radius,y+self.radius),(x+self.radius,y-self.radius),(x+self.radius,y+self.radius)])
+		for point in points:
+			(x,y)=self.cell(x=point[0],y=point[1])
+			if maze[y,x]==BLACK:
+				return True
+		return False
 		
 	def kin_move(self, u_omega, u_psi):	
 		# calculate deltas based on nonholonomic constraints of diwheel robot
@@ -77,6 +85,28 @@ class Bot():
 				if self.willCollide(corners, field):
 					collision = True
 		return [x, y, theta, collision, count]
+	
+	# local planner to get mainshaft movement commands
+	def local_planner(self,pos1,pos2,maze):
+		dir=direction(pos1,pos2)
+		dis=distance(pos1,pos2)
+		(x,y) = (pos1.col,pos1.row)
+		commands = []
+		num_steps=dis/self._dt
+		num_iter=num_steps//1
+		remainder=num_steps%num_iter
+		for i in range(num_iter):
+			x+=dis/num_iter*cos(dir)
+			y+=dis/num_iter*sin(dir)
+			if self.collision_detect(x,y,maze):
+				return False
+		x+=remainder*cos(dir)
+		y+=remainder*sin(dir)
+		if self.collision_detect(x,y,maze):
+			return False
+		return True
+
+	
 	def conv(self, row):
 		return self.nrow - row
 	
@@ -89,4 +119,10 @@ class Bot():
 			y_arr = [self.conv(edge[0].row), self.conv(edge[1].row)]
 			plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)
 	
+	# method for defining a cell that is useful for the algorithm
+	def cell(self, x, y):
+		# cell has length and width of 1
+		r = y//1
+		c = x//1
+		return (c, r)
 

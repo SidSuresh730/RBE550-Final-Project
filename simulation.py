@@ -11,21 +11,7 @@ from rrt_robot import *
 from mapper_robot import *
 from fire_fighting_robot import *
 from time import process_time
-# States of grid/obstacles
-EMPTY = 0
-OB_NORM = 1
-OB_BURN = 2
-OB_EXT = 3
-OB_BURNED = 4
-OBSTACLE_LIFE = 500
-#Colors
-GREEN = (0,255,0)
-RED = (255,0,0)
-DARK_GREEN = (0,153,0)
-BLACK = (0,0,0)
-TAN = (210,180,140)
-WHITE = (255,255,255)
-FIRE_ENGINE_RED = (206,32,41) 
+
 # Pygame constants and inits
 WIDTH, HEIGHT = 1500,1500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))

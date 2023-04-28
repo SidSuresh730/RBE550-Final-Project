@@ -1,6 +1,21 @@
 import numpy as np
 import math
 MAX_NODES = 16384
+# States of grid/obstacles
+EMPTY = 0
+OB_NORM = 1
+OB_BURN = 2
+OB_EXT = 3
+OB_BURNED = 4
+OBSTACLE_LIFE = 500
+#Colors
+GREEN = (0,255,0)
+RED = (255,0,0)
+DARK_GREEN = (0,153,0)
+BLACK = (0,0,0)
+TAN = (210,180,140)
+WHITE = (255,255,255)
+FIRE_ENGINE_RED = (206,32,41) 
 
 # function for finding Euclidean distance between nodes
 # Input: Nodes
@@ -30,7 +45,9 @@ class Node:
 			# List of all Nodes the Node is connected to. Each node is connected to itself
 			self.connected = [self]
 			# parent of the node in a graph
-			self.parent = None            
+			self.parent = None
+
+			# commands            
 		
 		def Connect(self, node):
 			self.connected = np.append(self.connected, node)
