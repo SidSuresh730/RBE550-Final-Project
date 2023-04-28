@@ -34,7 +34,7 @@ class Bot():
 		points=np.array([(x-self.radius,y-self.radius),(x-self.radius,y+self.radius),(x+self.radius,y-self.radius),(x+self.radius,y+self.radius)])
 		for point in points:
 			(x,y)=self.cell(x=point[0],y=point[1])
-			if maze[y,x]==BLACK:
+			if maze[y,x]==OB_NORM:
 				return True
 		return False
 		
@@ -94,9 +94,9 @@ class Bot():
 		dis=distance(pos1,pos2)
 		(x,y) = (pos1.col,pos1.row)
 		commands = []
-		num_steps=dis/self._dt
-		num_iter=num_steps//1
-		remainder=num_steps%num_iter
+		num_steps=dis//self._dt
+		num_iter=int(num_steps)
+		remainder=num_steps - num_iter
 		for i in range(num_iter):
 			x+=dis/num_iter*cos(dir)
 			y+=dis/num_iter*sin(dir)
@@ -124,6 +124,4 @@ class Bot():
 	# method for defining a cell that is useful for the algorithm
 	def cell(self, x, y):
 		# cell has length and width of 1
-		r = y//1
-		c = x//1
-		return (c, r)
+		return (int(x), int(y))

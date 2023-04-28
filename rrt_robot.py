@@ -248,6 +248,7 @@ def main():
 	rrt_limit = 500
 	buffer = .5
 	while bot.success<rrt_limit:
+		print(bot.success)
 		bot.rrt_search(maze, buffer=buffer)
 	
 	maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
