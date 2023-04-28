@@ -13,12 +13,12 @@ from fire_fighting_robot import *
 from time import process_time
 
 # Pygame constants and inits
-WIDTH, HEIGHT = 1500,1500
+WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 10
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
-pygame.display.set_caption("First Line Robust Automatic Aviators")
+pygame.display.set_caption("First Line Robust Automatic Aviators: Three Blind Mice")
 
 class Simulation:
 	def __init__(self,nrows,ncols,smol,med,lrg,num_inside,num_ent,pixel_factor):

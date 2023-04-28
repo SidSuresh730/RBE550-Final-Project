@@ -1,7 +1,7 @@
 from data_structure_library import *
 import numpy as np
 import matplotlib.pyplot as plt
-from math import sin,cos,radians,degrees,pi
+from math import sin,cos,radians,degrees,pi,inf
 
 class Bot():
 	def __init__(self, nrow, ncol, color,x,y,theta) -> None:
@@ -11,7 +11,7 @@ class Bot():
 		self.tree = None
 		self.color = color
 
-		self.radius=0.5
+		self.radius=0.25
 		self._x=x
 		self._y=y
 		self._theta=theta
@@ -19,6 +19,9 @@ class Bot():
 
 	def collision_detect(self,x,y,hwalls,vwalls,buffer):
 		# assume corners given in clockwise direction starting in top left
+		wall_corners_list = list()
+		robot_corners = list()
+		wall_width = 0.1
 		for wall in hwalls:
 			not_y,not_x=False,False
 			xmin=wall.llim
@@ -52,27 +55,6 @@ class Bot():
 			if not(not_x or not_y):
 				return True
 		return False		
-		# corners = np.concatenate((corners,corners2))
-		# for corner in corners:
-		# 	[c1,c2,c3,c4] = corner
-		# 	cx = 0.5*(c1[0]+c3[0])
-		# 	cy = 0.5*(c1[1]+c3[1])
-		# 	rx=abs(0.5*(c2[0]-c1[0]))
-		# 	ry=abs(0.5*(c4[1]-c1[1]))
-		# 	if abs(y-cy)>ry+self.radius:
-		# 		return False
-		# 	if abs(x-cx)>rx+self.radius:
-		# 		return False
-		# return True		
-
-	# def collision_detect(self,x,y,maze):
-	# 	print("Bot: collision detect")
-	# 	points=np.array([(x-self.radius,y-self.radius),(x-self.radius,y+self.radius),(x+self.radius,y-self.radius),(x+self.radius,y+self.radius)])
-	# 	for point in points:
-	# 		(x,y)=self.cell(x=point[0],y=point[1])
-	# 		if maze[x,self.conv(y)]==OB_NORM:
-	# 			return True
-	# 	return False
 		
 	def kin_move(self, u_omega, u_psi):	
 		# calculate deltas based on nonholonomic constraints of diwheel robot
@@ -144,6 +126,8 @@ class Bot():
 		# y=self.conv(y)
 		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
 			return False
+		#self.plot()
+		#plt.show()
 		return True
 
 	def conv(self, row):
@@ -163,3 +147,39 @@ class Bot():
 	def cell(self, x, y):
 		# cell has length and width of 1
 		return (int(x), int(y))
+		
+		
+
+	def line_box_collision(self,pos1,pos2,hwalls,vwalls):
+		list_points = list()
+		wall_width = 0.2
+		for wall in hwalls:
+			xmin=wall.llim
+			xmax=wall.ulim
+			ymin=wall.row-wall_width/2
+			ymax=wall.row+wall_width/2
+			list_points.append([xmin, ymin])
+			list_points.append([xmin, ymax])
+			list_points.append([xmax, ymin])
+			list_points.append([xmax, ymax])
+		for wall in vwalls:
+			xmin=wall.col-wall_width/2
+			xmax=wall.col+wall_width/2
+			ymin=wall.llim
+			ymax=wall.ulim
+			list_points.append([xmin, ymin])
+			list_points.append([xmin, ymax])
+			list_points.append([xmax, ymin])
+			list_points.append([xmax, ymax])
+		for point in list_points:
+			dist = self.point_line_dist(point, pos1, pos2)
+			if dist < self.radius:
+				return True
+		return False
+	
+	def point_line_dist(self, p0, p1_node, p2_node):
+		p1 = [p1_node.row, p1_node.col]
+		p2 = [p2_node.row, p2_node.col]
+		print("PLD", p0, p1, p2)
+		dist = abs((p2[0] - p1[0]) * (p2[1] - p1[1]) - (p1[0] - p0[0]) * (p1[1] - p0[1])) / math.sqrt(pow(p2[0] - p1[0], 2) + pow(p2[1] - p1[1], 2))
+		return dist

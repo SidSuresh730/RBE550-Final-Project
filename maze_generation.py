@@ -54,13 +54,6 @@ def random_kruskal_maze(field):
 		if not nodes_connected:
 			field[check_wall[0]][check_wall[1]] = 1
 			connect_nodes(Node1, Node2)
-		#else:
-		#	if Node1.row == Node2.row:
-		#		Vwall = VWall(check_wall[1], Node1.row-1, Node1.row+1)
-		#		vwalls.append(Vwall)
-		#	elif Node1.col == Node2.col:
-		#		Hwall = HWall(check_wall[0], Node1.col-1, Node1.col+1)
-		#		hwalls.append(Hwall)
 	return field
 	
 
@@ -213,7 +206,7 @@ def generate_entrances(maze, num_ent):
 	entrances = []
 	for i in range(num_ent):
 		ent_loc = random.randint(1, 4)
-		n = random.randint(1, num_rows - 1)
+		n = random.randint(1, num_rows-2)
 		if ent_loc == 1: # Top side
 			maze[0][n] = 3
 			entrances.append([0, n])
@@ -267,7 +260,7 @@ def plot(field, path, bot, fires):
 			data.append([n.row, n.col])
 		data2 = np.array(data)
 		if len(data) > 0:
-			plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'r--')
+			plt.plot(data2[:, 1], num_rows - 1 - data2[:, 0], 'y--')
 	if fires:
 		for fire in fires:
 			if fire.size == 1:
@@ -281,10 +274,7 @@ def plot(field, path, bot, fires):
 			if fire.size == 3:
 				#print("Fire def", fire)
 				rect = patches.Rectangle((fire.col-1, num_rows-fire.row-2), width=2, height=2, linewidth=1, edgecolor='r', facecolor='none')
-				ax.add_patch(rect)
-	
-	
-		
+				ax.add_patch(rect)		
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
 	plt.show()
@@ -303,9 +293,11 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	for i in range(num_rows):
 		for j in range(num_cols):
 			maze[i*2+1][j*2+1] = 1
+	print(maze)
 	# ---- Turn field into maze ----
 	maze = random_kruskal_maze(maze)
-
+	print("")
+	print(maze)
 	# ---- Increase maze size ----
 	big_maze = maze_expansion(maze, num_inside)
 	# ---- Generate the starting fires
@@ -331,7 +323,7 @@ def main():
 	num_inside = 3 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	[maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[maze, big_maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 
 	# ---- Test code ----
 		

@@ -38,11 +38,22 @@ class ABot(Bot):
 			path.append(current_node)
 			current_node = current_node.parent
 		path.append(current_node)
-		while len(pqueue.q) > 0:
-			v = pqueue.get_min_dist_element()
-			self.tree.remove_vertex(v)
-			self.tree.remove_edge((v.parent, v))	
+		path.reverse()
+		
+		for p in path:
+			print("P", p)
+		
+		cool_path = self.local_plan(path, maze)
+		
+		#while len(pqueue.q) > 0:
+		#	v = pqueue.get_min_dist_element()
+		#	self.tree.remove_vertex(v)
+		#	self.tree.remove_edge((v.parent, v))	
 		return path
+
+	def local_plan(self, path, maze):
+		print("Cool!")
+		
 
 def main():
 	print("A Star Main\n")
@@ -55,20 +66,16 @@ def main():
 	num_inside = 10 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = False
-	[maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[maze, big_maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 	
 	
 	# ---- Run A*
-	bot = ABot(len(maze)-1, len(maze[0]), color="cyan", x=0, y=0, theta=0)
+	bot = ABot(len(big_maze)-1, len(big_maze[0]), color="cyan", x=0, y=0, theta=0)
 	start = entrances[0]
 	end = [1, 1]
-	path = bot.a_star(start, end, maze)
+	path = bot.a_star(start, end, big_maze)
 
-	
-	path.reverse()
-	#path2.reverse()
-	#path += path2
-	maze_generation.plot(maze, path, bot, fires)
+	maze_generation.plot(big_maze, path, bot, fires)
 
 if __name__ == "__main__":
 	main()

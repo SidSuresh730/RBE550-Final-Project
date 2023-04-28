@@ -11,7 +11,7 @@ from bot import Bot
 class RRTBot(Bot):
 	def __init__(self, epsilon, start, nrow, ncol, color,x ,y ,theta) -> None:
 		super().__init__(nrow, ncol, color,x,y,theta)
-		self.epsilon = 1 #epsilon
+		self.epsilon = .5 #epsilon
 		self.current_pos = start
 		self.tree = Graph(start)
 		# self.collisions = 0
@@ -25,18 +25,15 @@ class RRTBot(Bot):
 		frontiers = []
 		num_fail=0
 		while self.success<100:
-			print(self.success)
-			q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
-			while q_rand in self.tree.V:
-				q_rand = Node(random.uniform(1.0,self.ncol), random.uniform(1.0,self.nrow))
+			print(self.success, self.ncol, self.nrow)
+			q_rand = Node(random.uniform(0,self.ncol-1), random.uniform(0,self.nrow-1))
 			#find closest node in tree to random node
 			q_curr = self.find_closest_node(q_rand)
 			dir = direction(q_curr, q_rand)
 			dis = distance(q_curr, q_rand)
 			#attempt to grow tree in direction of q_rand a maximum of epsilon
-			q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
+			q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
 			possible_edge = (q_curr, q_new)
-			# if not self.will_collide(possible_edge, hwalls, vwalls) and not self.lies_on_edge(q_new) and not self.too_close(q_new, hwalls, vwalls, buffer):
 			if self.local_planner(q_curr,q_new,hwalls,vwalls,buffer=buffer):
 				q_new.parent = q_curr
 				self.tree.V.append(q_new)
@@ -143,12 +140,12 @@ class RRTBot(Bot):
 		
 def main():
 	# ---- Run Maze Generation code
-	num_rows = 3 # Number of rows in the maze
-	num_cols = 3 # Number of columns in the maze
+	num_rows = 4 # Number of rows in the maze
+	num_cols = 4 # Number of columns in the maze
 	num_fires_smol = 5 # Number of 1x1 in the maze
 	num_fires_med = 3 # Number of 2x2 in the maze
 	num_fires_lrg = 1 # Number of 3x3 in the maze
-	num_inside = 5 # Number of padding inside each cell
+	num_inside = 8 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
 	[maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
@@ -156,15 +153,7 @@ def main():
 	(hwalls, vwalls) = maze_generation.get_list_walls(maze)
 	print("rrt main start", start)
 	
-	#for fire in fires:
-	#	print("Fire", fire)
-	
-	#for h in hwalls:
-	#	print(h)
-		
-	#print(b)
-	
-	bot = RRTBot(epsilon= 1, start=start, nrow=len(maze)-1, ncol=len(maze[0]), color='cyan', x=0, y=0, theta=0)
+	bot = RRTBot(epsilon= 1, start=start, nrow=len(maze)-1, ncol=len(maze[0]), color='cyan', x=start.col, y=num_rows-start.row-1, theta=0)
 	rrt_limit = 500
 	buffer = .5
 	# while bot.success<rrt_limit:
