@@ -15,10 +15,10 @@ from time import process_time
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 10
+FPS = 5
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
-pygame.display.set_caption("First Line Robust Automatic Aviators: Three Blind Mice")
+pygame.display.set_caption("First Line Robust Automatic Aviators: Two Blind Mice")
 
 class Simulation:
 	def __init__(self,nrows,ncols,smol,med,lrg,num_inside,num_ent,pixel_factor):
@@ -31,8 +31,9 @@ class Simulation:
 		self.num_fires_lrg = lrg # Number of 3x3 in the maze
 		self.num_inside = num_inside # Number of padding inside each cell
 		self.num_ent = num_ent # Number of entrances to the maze
-		self.plot_maze = False
+		self.plot_maze = True
 		[self.maze, self.fires, self.entrances] = generate_maze(self.num_rows, self.num_cols, self.num_fires_smol, self.num_fires_med, self.num_fires_lrg, self.num_inside, self.num_ent, self.plot_maze)
+		self.hwalls,self.vwalls= get_list_walls(self.maze)
 		nrow=len(self.maze)
 		ncol=len(self.maze[0])
 		self.offset = ((WIDTH-ncol*self.pixel_factor)//2,(HEIGHT-nrow*self.pixel_factor)//2)
@@ -72,10 +73,21 @@ class Simulation:
 			pygame.draw.polygon(surface=WIN,color=BLACK,points=self.pixel_factor*corners+self.offset)
 
 	def draw_robot(self, bot):
-		(x,y,theta,r)=(bot._x,bot._y,bot._theta,bot.radius)
+		(x,y,theta,r)=(bot._x+0.5,bot._y+0.5,bot._theta,bot.radius)
 		point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
+
+	def draw_fires(self):
+		for fire in self.fires:
+			top=self.pixel_factor*(fire.row-fire.size+1)+self.offset[0]
+			left=self.pixel_factor*(fire.col)+self.offset[1]
+			w=self.pixel_factor*(fire.size)
+			r=pygame.Rect(left,top,w,w)
+			if fire.active:
+				pygame.draw.rect(surface=WIN,rect=r,color=RED)
+			else:
+				pygame.draw.rect(surface=WIN,rect=r,color=BLACK)
 
 	def draw_window(self):
 		# pygame.init()
@@ -87,26 +99,52 @@ class Simulation:
 		# print robots
 		for b in self.robots:
 			self.draw_robot(b)
-		# # print Firetruck
-		# self.draw_firetruck()
+		# draw fires
+		self.draw_fires()
 		pygame.display.update()
+
+	def run(self):#, simtime):
+		pygame.init()
+		clock = pygame.time.Clock()
+		run=True
+		while run:
+			clock.tick(FPS)
+			for event in pygame.event.get():
+				if event.type==pygame.QUIT:
+					run=False
+			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.5)	
+			self.draw_window()
+			# self.time+=1
+		# self.get_metrics(build_time,wumpus_time,truck_time)
+		pygame.quit()
+
 def main():
+	# num_rows = 4 # Number of rows in the maze
+	# num_cols = 4 # Number of columns in the maze
+	# num_fires_smol = 5 # Number of 1x1 in the maze
+	# num_fires_med = 3 # Number of 2x2 in the maze
+	# num_fires_lrg = 1 # Number of 3x3 in the maze
+	# num_inside = 8 # Number of padding inside each cell
+	# num_ent = 1 # Number of entrances to the maze
+	# plot_maze = True
 	nrows=4
 	ncols=4
 	smol=5
 	med=3
 	lrg=1
-	num_inside=10
+	num_inside=8
 	num_ent=1
 	pixel_factor=20
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
-	start=Node(row=2, col=2)
+	start = Node(sim.entrances[0][0], sim.entrances[0][1])
 	theta=0
 	x=start.col
 	y=start.row
-	bot = RRTBot(epsilon= 1, start=Node(row=1, col=1), nrow=nrows, ncol=ncols, color=RED,x=x,y=y,theta=theta)
+	bot = RRTBot(epsilon= 1, start=start, nrow=nrows, ncol=ncols, color=GREEN,x=x,y=y,theta=theta)
 	sim.add_bot(bot)
-	while True:	
-		sim.draw_window()
+	sim.run()
+	# while True:
+	# 	sim.robots[0].step(sim.hwalls,sim.vwalls,sim.fires,0.1)	
+		# sim.draw_window()
 if __name__== "__main__":
 	main()

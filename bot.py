@@ -10,7 +10,7 @@ class Bot():
 		self.ncol = ncol
 		self.tree = None
 		self.color = color
-
+		self.path = []
 		self.radius=0.25
 		self._x=x
 		self._y=y
@@ -106,30 +106,6 @@ class Bot():
 					collision = True
 		return [x, y, theta, collision, count]
 	
-	# local planner to get mainshaft movement commands
-	def local_planner(self,pos1,pos2,hwalls,vwalls,buffer):
-		dir=direction(pos1,pos2)
-		dis=distance(pos1,pos2)
-		(x,y) = (pos1.col,pos1.row)
-		commands = []
-		num_steps=dis//self._dt
-		num_iter=int(num_steps)
-		remainder=num_steps - num_iter
-		for i in range(num_iter):
-			x+=dis/num_iter*cos(dir)
-			y+=dis/num_iter*sin(dir)
-			# y=self.conv(y)
-			if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
-				return False
-		x+=remainder*cos(dir)
-		y+=remainder*sin(dir)
-		# y=self.conv(y)
-		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
-			return False
-		#self.plot()
-		#plt.show()
-		return True
-
 	def conv(self, row):
 		return self.nrow - row
 	

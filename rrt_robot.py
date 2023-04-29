@@ -7,6 +7,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import maze_generation
 from bot import Bot
+from time import process_time
 
 class RRTBot(Bot):
 	def __init__(self, epsilon, start, nrow, ncol, color,x ,y ,theta) -> None:
@@ -16,11 +17,13 @@ class RRTBot(Bot):
 		self.tree = Graph(start)
 		# self.collisions = 0
 		self.success = 0
+		self.frontier_min=5
+		self.frontier_max=7
 	
 	# one iteration of the RRT algorithm
 	# Input: None
 	# Output: None
-	def rrt_search(self, hwalls,vwalls, buffer):
+	def rrt_search(self, hwalls, vwalls, fires, buffer):
 		#random sample a node
 		frontiers = []
 		num_fail=0
@@ -32,23 +35,93 @@ class RRTBot(Bot):
 			dir = direction(q_curr, q_rand)
 			dis = distance(q_curr, q_rand)
 			#attempt to grow tree in direction of q_rand a maximum of epsilon
-			q_new = Node(row=round(q_curr.row + (self.epsilon%dis)*math.sin(dir),2),col=round(q_curr.col +(self.epsilon%dis)*math.cos(dir),2))
+			q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
 			possible_edge = (q_curr, q_new)
-			if self.local_planner(q_curr,q_new,hwalls,vwalls,buffer=buffer):
+			(x,y,collision,outside_bounds,frontier,fire)=self.local_planner(q_curr,q_new,hwalls,vwalls,fires,buffer=buffer)
+			if not collision:
+				q_new.row=y
+				q_new.col=x
 				q_new.parent = q_curr
-				self.tree.V.append(q_new)
-				self.current_pos=q_new
-				self.tree.E.append(possible_edge)
-				self.success+=1
-			# else:
-			# 	num_fail+=1
-			# 	if num_fail>10000:
-			# 		break
-		# print("Failures: %d" % num_fail)
-		# if num_fail>99:
-		# 	self.plot()
+				if not outside_bounds:
+					self.tree.V.append(q_new)
+					self.tree.E.append(possible_edge)
+					if frontier:
+						print("Frontier")
+						frontiers.append(q_new)
+						self.build_path(q_new)
+						break
+					self.success+=1
+				if fire:
+					print("Fire!")
+					self.build_path(q_new)
+					break
 		self.success=0
 		return frontiers
+
+	def build_path(self,q_new):
+		print("Building path")
+		self.path=[]
+		curr = q_new
+		while curr != self.current_pos:
+			self.path.append(curr)
+			curr=curr.parent
+			# print(curr)
+	
+	def step(self,hwalls,vwalls,fires,buffer):
+		t_start = process_time()
+		if len(self.path)>0:
+			print("on my way")
+			self.current_pos = self.path.pop()
+			self._x, self._y = (self.current_pos.col, self.current_pos.row)
+		else:
+			# print("Running RRT")
+			self.tree=Graph(self.current_pos)
+			frontiers = self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
+			# if frontiers:
+			# 	front = frontiers.pop()
+			# 	self.build_path(front)
+			print(self.path)
+		t_stop = process_time()
+		return t_stop-t_start
+
+	# local planner to test possible path
+	def local_planner(self,pos1,pos2,hwalls,vwalls,fires,buffer):
+		dir=direction(pos1,pos2)
+		dis=distance(pos1,pos2)
+		(x,y) = (pos1.col,pos1.row)
+		# commands = []
+		collision=False
+		outside_bounds=False
+		frontier=False
+		fire_detected=None
+		num_steps=dis//self._dt
+		num_iter=int(num_steps)
+		remainder=num_steps - num_iter
+		for i in range(num_iter):
+			x+=dis/num_iter*math.cos(dir)
+			y+=dis/num_iter*math.sin(dir)
+			# y=self.conv(y)
+			if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
+				collision=True
+				break
+			(fire, detected) = self.fire_detect(x,y,fires,buffer)
+			if detected:
+				fire_detected=fire
+				break
+		if not fire_detected and not collision:
+			x+=remainder*math.cos(dir)
+			y+=remainder*math.sin(dir)
+		# y=self.conv(y)
+		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
+			collision=True
+		(fire, detected) = self.fire_detect(x,y,fires,buffer)
+		if detected:
+			fire_detected=fire
+		if distance(Node(y,x),self.current_pos)>self.frontier_max:
+			outside_bounds=True
+		elif distance(Node(y,x),self.current_pos)>self.frontier_min:
+			frontier=True
+		return (x,y,collision,outside_bounds,frontier,fire_detected)
 
 	# method for finding closest node in tree to randomly generated node
 	# Input: Randomly generated node
@@ -63,81 +136,27 @@ class RRTBot(Bot):
 				min_node = node
 		return min_node
 	
-	def too_close(self, node, hwalls, vwalls, buffer):
-		for wall in hwalls:
-			if node.col >= wall.llim-buffer and node.col <= wall.ulim+buffer:
-				if node.row >= wall.row-buffer and node.row<=wall.row+buffer:
-					#print("Too close!")
-					return True
-		for wall in vwalls:
-			if node.row >= wall.llim-buffer and node.row <= wall.ulim+buffer:
-				if node.col>= wall.col-buffer and node.col<=wall.col+buffer:
-					#print("Too close!")
-					return True
-		return False
-
-	# method to determine if a given edge will collide with an obstacle
-	# Input: Edge, horizontal wall's list, vertical walls list
-	# Output: Boolean (True: Will collide, False: Will NOT collide)
-	def will_collide(self,edge, hwalls, vwalls) -> bool:
-		# check if vertical edge
-		if(edge[1].col == edge[0].col):
-			for wall in hwalls:
-				l = min(edge[0].row, edge[1].row)
-				u = max(edge[0].row, edge[1].row)
-				if edge[0].col>=wall.llim and edge[0].col<=wall.ulim:
-					if l <= wall.row and u >= wall.row:
-						return True
-			return False
-		#find slope of edge
-		m = (edge[1].row-edge[0].row)/(edge[1].col-edge[0].col)
-		#check collision with horizontal walls
-		for wall in hwalls:
-			l = min(edge[0].row, edge[1].row)
-			u = max(edge[0].row, edge[1].row)
-			if wall.row >= l and wall.row <= u:
-				#print("Possible collision!")
-				y = wall.row
-				y1 = edge[0].row
-				x1 = edge[0].col
-				point = round((y-y1)/m+x1,2)
-				if point >= wall.llim and point <= wall.ulim:
-					#print("H Collision!")
-					# self.collisions += 1
-					return True
-		#check collision with vertical walls
-		for wall in vwalls:
-			l = min(edge[0].col, edge[1].col)
-			u = max(edge[0].col, edge[1].col)
-			if wall.col >= l and wall.col <= u:
-				x = wall.col
-				y1 = edge[0].row
-				x1 = edge[0].col
-				point = round(m*(x-x1)+y1,2)
-				if point >= wall.llim and point <= wall.ulim:
-					#print("V Collision!")
-					return True
-		return False
-
-	# method to determine if a node lies on a current edge of the tree
-	# Input: node to add to tree
-	# Output: Boolean (True: there is an edge that the node would coincide with, False: No edge)
-	def lies_on_edge(self, node):
-		for edge in self.tree.E:
-			# check if vertical edge
-			if(edge[1].col == edge[0].col):
-				if(node.col==edge[0].col):
-					if node.row in np.arange(min(edge[0].row, edge[1].row), max(edge[0].row, edge[1].row)+1, 0.01):
-							#print("On edge vertical!")
-							return True
-			elif node.col in np.arange(min(edge[0].col, edge[1].col), max(edge[0].col, edge[1].col)+1, 0.01):
-				# find slope of edge
-				m = (edge[1].row-edge[0].row)/(edge[1].col-edge[0].col)
-				if node.row - edge[0].row == m*(node.col-edge[0].col):
-					#print("On edge!")
-					return True
-		return False
-		
+	def fire_detect(self,x,y,fires,buffer):
+		for fire in fires:
+			if fire.active:
+				not_y,not_x=False,False
+				xmin=fire.col-buffer
+				xmax=fire.col+fire.size+1+buffer
+				ymin=fire.row-buffer
+				ymax=fire.row+fire.size+1+buffer
+				cx = 0.5*(xmin+xmax)
+				cy = 0.5*(ymin+ymax)
+				rx=abs(0.5*(xmax-xmin))
+				ry=abs(0.5*(ymax-ymin))
+				if abs(y-cy)>ry+self.radius:
+					not_y=True
+				if abs(x-cx)>rx+self.radius:
+					not_x=True
+				if not(not_x or not_y):
+					print("Fire detected!")
+					return (fire, True)
+		return (None, False)		
+	
 def main():
 	# ---- Run Maze Generation code
 	num_rows = 4 # Number of rows in the maze
@@ -158,9 +177,9 @@ def main():
 	buffer = .5
 	# while bot.success<rrt_limit:
 		# print(bot.success)
-	bot.rrt_search(hwalls, vwalls, buffer=buffer)
-	
-	maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
+	while True:
+		bot.step(hwalls, vwalls, fires, buffer=buffer)
+		maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
 	# plt.show()
 if __name__ == "__main__":
 	main()

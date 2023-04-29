@@ -54,9 +54,10 @@ class Node:
 		
 		def __eq__(self, other):
 			return (self.row, self.col) == (other.row, other.col)
+			# return distance(self,other)<=0.0001
 		
 		def __str__(self):
-			print(self.row, self.col, "-", end = ' ')
+			print(self.row, self.col, "-")#, end = ' ')
 			return ""
 
 class Graph:

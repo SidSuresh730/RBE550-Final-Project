@@ -170,8 +170,8 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 	fires_made = 0
 	while fires_made < num_fires_lrg:
 		count = 0
-		fire_row = random.randint(0, num_rows-2)
-		fire_col = random.randint(0, num_rows-2)
+		fire_row = random.randint(0, num_rows-3)
+		fire_col = random.randint(0, num_rows-3)
 		for i in range(lrg_size): 
 			for j in range(lrg_size):
 				if maze[fire_row - i][fire_col + j] == 1:
@@ -310,7 +310,7 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	# ---- Plot maze ----
 	if plot_maze:
 		plot(field=big_maze, path=None, bot=None, fires=fires)
-	return [maze, big_maze, fires, entrances]
+	return [big_maze, fires, entrances]
 	
 def main():
 	print("Run Maze Generation Main\n")
@@ -323,7 +323,7 @@ def main():
 	num_inside = 3 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	[maze, big_maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[big_maze, fires, entrances] = generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 
 	# ---- Test code ----
 		
