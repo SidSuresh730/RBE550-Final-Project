@@ -174,12 +174,12 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 		fire_col = random.randint(0, num_rows-2)
 		for i in range(lrg_size): 
 			for j in range(lrg_size):
-				if maze[fire_row + i - 1][fire_col + j - 1] == 1:
+				if maze[fire_row - i][fire_col + j] == 1:
 					count +=1
 		if count >= lrg_size*lrg_size:
 			for i in range(lrg_size): 
 				for j in range(lrg_size):
-					maze[fire_row + i - 1][fire_col + j - 1] = 2
+					maze[fire_row - i][fire_col + j] = 2
 			fires_made += 1
 			fires.append(Fire(fire_row, fire_col, lrg_size))
 	return fires
@@ -273,7 +273,7 @@ def plot(field, path, bot, fires):
 				ax.add_patch(rect)
 			if fire.size == 3:
 				#print("Fire def", fire)
-				rect = patches.Rectangle((fire.col-1, num_rows-fire.row-2), width=2, height=2, linewidth=1, edgecolor='r', facecolor='none')
+				rect = patches.Rectangle((fire.col, num_rows-fire.row-1 ), width=2, height=2, linewidth=1, edgecolor='r', facecolor='none')
 				ax.add_patch(rect)		
 	plt.axis([-1, num_cols, -1, num_rows])
 	plt.title("Maze")
@@ -310,7 +310,7 @@ def generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_l
 	# ---- Plot maze ----
 	if plot_maze:
 		plot(field=big_maze, path=None, bot=None, fires=fires)
-	return [big_maze, fires, entrances]
+	return [maze, big_maze, fires, entrances]
 	
 def main():
 	print("Run Maze Generation Main\n")
