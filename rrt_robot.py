@@ -25,6 +25,7 @@ class RRTBot(Bot):
 		self.frontiers=PriorityQueue()
 		self.root=self.current_pos
 		self.reverse_path=[]
+		self.astar_loc=self.current_pos
 	
 	# one iteration of the RRT algorithm
 	# Input: None
@@ -111,38 +112,32 @@ class RRTBot(Bot):
 			self.current_pos = self.path.pop()
 			self.reverse_path.append(self.current_pos)
 			self._x, self._y = (self.current_pos.col, self.current_pos.row)
-			print("Path length: ",len(self.path))
+			#print("Path length: ",len(self.path))
 		elif self.fire:
 			self.fire.found=True
-			self.fire=None
-				# print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+			#self.fire=None
+			self.path = self.build_path(self.astar_loc)
+			path_to_root = self.build_path(self.current_pos)
+			print("ISJDHVPKSJDNPKISJDNBVO{SIUDHBOISPUDJNSIODFUBSDOIFJSODIBJSOD{IBJSDO{PBJS")
+			path_to_root.reverse()
+			temp = self.path+path_to_root
+			for n in self.path:
+				if n in path_to_root:
+					temp.remove(n)
+			for n in path_to_root:
+				if n in self.path:
+					temp.remove(n)
+			self.path=temp
+			self.astar_loc = Node
 		else:
 			print("Running RRT")
-			# self.tree=Graph(self.current_pos)
 			self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
 			if len(self.frontiers.q)>0:
 				front = self.frontiers.get_min_dist_element()
 				self.path=self.build_path(front)					
-			# print(self.path)
 			if self.current_pos != self.root:
 				path_to_root = self.build_path(self.current_pos)
-				# path_to_root.reverse()
-				# print("Path: ",self.)
-				# if set(path_to_root).issubset(set(self.path)):
-				# 	for q in path_to_root:
-				# 		if q in self.path:
-				# 			self.path.remove(q)
 				print("Path: ",len(self.path),"P2R: ",len(path_to_root))
-				# iters=min(len(self.path),len(path_to_root))
-				# for i in range(iters):
-				# 	print(i)
-				# 	if self.path[iters-i-1] != path_to_root[iters-i-1]:
-				# 		self.path=self.path[:i]
-				# 		path_to_root=path_to_root[:i+1]
-				# 		break
-				# # path_to_root.reverse()
-				# self.path.reverse()
-				# self.path.reverse()
 				path_to_root.reverse()
 				temp = self.path+path_to_root
 				for n in self.path:
@@ -152,8 +147,6 @@ class RRTBot(Bot):
 					if n in self.path:
 						temp.remove(n)
 				self.path=temp
-				# self.path.reverse()
-				# self.path=path_to_root+self.path
 			
 		t_stop = process_time()
 		return t_stop-t_start

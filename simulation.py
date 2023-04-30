@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import random
 import pygame
-from rrt_robot import *
+from rrt_robot import RRTBot
+from a_star import ABot
 from mapper_robot import *
 from fire_fighting_robot import *
 from time import process_time
@@ -15,7 +16,7 @@ from time import process_time
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 60
+FPS = 30
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
 pygame.display.set_caption("First Line Robust Automatic Aviators: Two Blind Mice")
@@ -77,13 +78,16 @@ class Simulation:
 		point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
-		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=bot.frontier_min*self.pixel_factor, width=1,color=BLACK)
-		for edge in bot.tree.E:
-			x_arr = self.pixel_factor*np.array([edge[0].col, (edge[0].row)])+self.offset+(0.5,0.5)
-			y_arr = self.pixel_factor*np.array([edge[1].col, (edge[1].row)])+self.offset+(0.5,0.5)
-			points=[x_arr,y_arr]
-			pygame.draw.lines(surface=WIN,color=BLACK,points=points,closed=False)
-			# plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)
+		if type(bot) == RRTBot:
+			pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=bot.frontier_min*self.pixel_factor, width=1,color=BLACK)
+			for edge in bot.tree.E:
+				x_arr = self.pixel_factor*np.array([edge[0].col, (edge[0].row)])+self.offset+(0.5,0.5)
+				y_arr = self.pixel_factor*np.array([edge[1].col, (edge[1].row)])+self.offset+(0.5,0.5)
+				points=[x_arr,y_arr]
+				pygame.draw.lines(surface=WIN,color=BLACK,points=points,closed=False)
+		if type(bot) == ABot:
+			nice = 69
+
 	def draw_fires(self):
 		for fire in self.fires:
 			top=self.pixel_factor*(fire.row-fire.size+1)+self.offset[0]
@@ -115,47 +119,51 @@ class Simulation:
 		pygame.init()
 		clock = pygame.time.Clock()
 		run=True
-		bot = self.robots[0]
+		#bot1 = self.robots[0]
+		#bot2 = self.robots[1]
+		done = False
 		while run:
 			clock.tick(FPS)
 			for event in pygame.event.get():
 				if event.type==pygame.QUIT:
 					run=False
 			self.draw_window()
-			bot.step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
-			bot = self.robots[0]
-			# if bot.current_pos==bot.root:
-			# 	maze_generation.plot(field=self.maze,path=None, bot=bot, fires=self.fires)
-			# 	bot.fail_counter=0
-			# self.draw_window()
-			# self.time+=1
-		# self.get_metrics(build_time,wumpus_time,truck_time)
+			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
+			done = self.robots[1].step()
+			if done:
+				print("Done!")
+				while 69:
+					lol = 420
+			if self.robots[0].fire:
+				# Got to A* pos
+				print("Hey!", distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)))
+				print(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x))
+				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 2:
+					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
+					self.robots[0].fire=None
 		pygame.quit()
 
 def main():
-	# num_rows = 4 # Number of rows in the maze
-	# num_cols = 4 # Number of columns in the maze
-	# num_fires_smol = 5 # Number of 1x1 in the maze
-	# num_fires_med = 3 # Number of 2x2 in the maze
-	# num_fires_lrg = 1 # Number of 3x3 in the maze
-	# num_inside = 8 # Number of padding inside each cell
-	# num_ent = 1 # Number of entrances to the maze
-	# plot_maze = True
-	nrows=4
-	ncols=4
-	smol=5
-	med=3
+	nrows=2
+	ncols=2
+	smol=0
+	med=0
 	lrg=1
-	num_inside=8
+	num_inside=10
 	num_ent=1
 	pixel_factor=20
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
 	start = Node(sim.entrances[0][0], sim.entrances[0][1])
-	theta=0
 	x=start.col
 	y=start.row
-	bot = RRTBot(epsilon=0.5, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x,y=y,theta=theta)
-	sim.add_bot(bot)
+	theta=sim.entrances[0][2]
+	bert = RRTBot(epsilon=0.5, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x-1,y=y,theta=theta)
+	terminator = ABot(len(sim.maze), len(sim.maze[0]), color=BLUE, x=x, y=y, theta=sim.entrances[0][2]) 
+	terminator.loc = start
+	terminator.big_maze = sim.maze
+	
+	sim.add_bot(bert)
+	sim.add_bot(terminator)
 	sim.run()
 	# while True:
 	# 	sim.robots[0].step(sim.hwalls,sim.vwalls,sim.fires,0.1)	

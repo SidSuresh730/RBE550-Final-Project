@@ -187,8 +187,9 @@ def generate_entrances(maze, num_ent):
 	count = 0
 	# We set up a count and an if statement check to make sure the entrance is not directly next to a wall when we generate it
 	while count < num_ent:
-		ent_loc = random.randint(1, 4)
-		n = random.randint(1, num_rows-2)
+		# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- FIX THIS LATER 
+		#ent_loc = random.randint(1, 4)
+		#n = random.randint(1, num_rows-2)
 		ent_loc = 4
 		n = num_rows-3
 		if ent_loc == 1: # Top side

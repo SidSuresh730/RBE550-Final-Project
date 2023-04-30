@@ -89,23 +89,23 @@ class ABot(Bot):
 		return True
 	
 	def step(self):
-		self.loc_path.append(Node(self.nrow - self._y - 1, self._x))
+		self.loc_path.append(Node(self._y, self._x))
 		if self.destination:
-			if round(pn_distance([self._x, self._y], Node(self.goal[0], self.goal[1]), self.nrow), 4) == 0:
+			if round(distance(Node(self._y, self._x), Node(self.goal[0], self.goal[1])), 4) == 0:
 				return True 
 			else:
 				self.motion_primitive()
 		elif self.goal:
-			start = (round(len(self.big_maze[0])-self._y-1, 4), round(self._x, 4))
+			start = (round(self._y, 4), round(self._x, 4))
 			path = self.a_star(start, self.goal, self.big_maze)	
 			self.path = self.local_planner(path, self.big_maze)
 			self.destination = self.path.pop()
 
 	def motion_primitive(self):
-		max_ang = 0.05
-		max_move = 0.1 
-		distance_to_dest = pn_distance([self._x, self._y], self.destination, self.nrow)
-		angle_to_dest = (pn_direction([self._x, self._y], self.destination, self.nrow) - self._theta) % (2*pi)
+		max_ang = 0.2
+		max_move = 1
+		distance_to_dest = distance(Node(self._y, self._x), self.destination)
+		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta) % (2*pi)
 		angle_to_dest = angle_to_dest 
 		if round(distance_to_dest, 4) == 0:
 			self.destination = self.path.pop()

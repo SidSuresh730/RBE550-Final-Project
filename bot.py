@@ -14,7 +14,7 @@ class Bot():
 		self._theta=theta
 		self.radius=0.25		
 		self.path=[]
-		self.tree = None
+		self.tree = Graph(Node(y, x))
 		self._dt=0.05
 
 	def collision_detect(self,x,y,hwalls,vwalls,buffer):
