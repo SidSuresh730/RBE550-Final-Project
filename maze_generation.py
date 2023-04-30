@@ -189,6 +189,8 @@ def generate_entrances(maze, num_ent):
 	while count < num_ent:
 		ent_loc = random.randint(1, 4)
 		n = random.randint(1, num_rows-2)
+		ent_loc = 4
+		n = num_rows-3
 		if ent_loc == 1: # Top side
 			if maze[1][n]: 
 				maze[0][n] = 3

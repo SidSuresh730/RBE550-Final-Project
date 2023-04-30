@@ -1,4 +1,4 @@
-from data_structure_library import Node, Graph, distance, direction
+from data_structure_library import Node, Graph, distance, direction, PriorityQueue
 import math
 import random
 import sys
@@ -12,13 +12,16 @@ from time import process_time
 class RRTBot(Bot):
 	def __init__(self, epsilon, start, nrow, ncol, color,x ,y ,theta) -> None:
 		super().__init__(nrow, ncol, color,x,y,theta)
-		self.epsilon = .5 #epsilon
+		self.epsilon = epsilon
 		self.current_pos = start
 		self.tree = Graph(start)
 		# self.collisions = 0
 		self.success = 0
-		self.frontier_min=5
-		self.frontier_max=7
+		self.frontier_min=3*self.epsilon
+		self.frontier_max=5*self.epsilon
+		self.visited=[]
+		self.fail_counter=0
+		self.fire = None
 	
 	# one iteration of the RRT algorithm
 	# Input: None
@@ -26,36 +29,57 @@ class RRTBot(Bot):
 	def rrt_search(self, hwalls, vwalls, fires, buffer):
 		#random sample a node
 		frontiers = []
+		pqueue = PriorityQueue()
 		num_fail=0
+		f=0
 		while self.success<100:
-			print(self.success, self.ncol, self.nrow)
-			q_rand = Node(random.uniform(0,self.ncol-1), random.uniform(0,self.nrow-1))
+			# print(self.success, self.ncol, self.nrow)
+			q_rand = Node(random.uniform(0,self.nrow-1), random.uniform(0,self.ncol-1))
+			while self.cell(q_rand.col,q_rand.row) in self.visited:
+				q_rand = Node(random.uniform(0,self.nrow-1), random.uniform(0,self.ncol-1))
 			#find closest node in tree to random node
 			q_curr = self.find_closest_node(q_rand)
 			dir = direction(q_curr, q_rand)
 			dis = distance(q_curr, q_rand)
+			# print(dis,dir)
 			#attempt to grow tree in direction of q_rand a maximum of epsilon
-			q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
+			# q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
+			q_new = Node(row=round(q_curr.row + min(dis,self.epsilon)*math.sin(dir),2),col=round(q_curr.col + min(dis,self.epsilon)*math.cos(dir),2))
+			# print(min(dis,self.epsilon)*math.sin(dir), min(dis,self.epsilon)*math.cos(dir), min(dis,self.epsilon))
+			# print(q_rand,q_new,q_curr)
 			possible_edge = (q_curr, q_new)
 			(x,y,collision,outside_bounds,frontier,fire)=self.local_planner(q_curr,q_new,hwalls,vwalls,fires,buffer=buffer)
 			if not collision:
 				q_new.row=y
 				q_new.col=x
 				q_new.parent = q_curr
+				q_new.g = -1*distance(q_new,self.current_pos)
+				pqueue.add(q_new)
 				if not outside_bounds:
 					self.tree.V.append(q_new)
+					self.visited.append(self.cell(q_new.col,q_new.row))
 					self.tree.E.append(possible_edge)
 					if frontier:
-						print("Frontier")
+						f+=1
+						print("Frontier",f)
 						frontiers.append(q_new)
-						self.build_path(q_new)
-						break
+						# self.build_path(q_new)
+						# break
 					self.success+=1
 				if fire:
 					print("Fire!")
+					fire.active=False
 					self.build_path(q_new)
 					break
+				# Willy wonky case
+				if self.success==99 and len(frontiers)==0:
+					print("Wonky")
+					q = pqueue.get_min_dist_element()
+					frontiers.append(q)
+			else:
+				self.fail_counter+=1
 		self.success=0
+		# print(frontiers)
 		return frontiers
 
 	def build_path(self,q_new):
@@ -63,6 +87,7 @@ class RRTBot(Bot):
 		self.path=[]
 		curr = q_new
 		while curr != self.current_pos:
+			# print("Building!")
 			self.path.append(curr)
 			curr=curr.parent
 			# print(curr)
@@ -74,13 +99,18 @@ class RRTBot(Bot):
 			self.current_pos = self.path.pop()
 			self._x, self._y = (self.current_pos.col, self.current_pos.row)
 		else:
-			# print("Running RRT")
+			if self.fire:
+				self.fire.active=False
+				self.fire=None
+			print("Running RRT")
 			self.tree=Graph(self.current_pos)
 			frontiers = self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
-			# if frontiers:
-			# 	front = frontiers.pop()
-			# 	self.build_path(front)
-			print(self.path)
+			# if len(self.path)==0:
+			# 	self.fail_counter+=1
+			if frontiers:
+				front = frontiers.pop()
+				self.build_path(front)
+			# print(self.path)
 		t_stop = process_time()
 		return t_stop-t_start
 
@@ -119,7 +149,7 @@ class RRTBot(Bot):
 			fire_detected=fire
 		if distance(Node(y,x),self.current_pos)>self.frontier_max:
 			outside_bounds=True
-		elif distance(Node(y,x),self.current_pos)>self.frontier_min:
+		elif distance(Node(y,x),self.current_pos)>=self.frontier_min:
 			frontier=True
 		return (x,y,collision,outside_bounds,frontier,fire_detected)
 
@@ -141,9 +171,9 @@ class RRTBot(Bot):
 			if fire.active:
 				not_y,not_x=False,False
 				xmin=fire.col-buffer
-				xmax=fire.col+fire.size+1+buffer
+				xmax=fire.col+fire.size+buffer
 				ymin=fire.row-buffer
-				ymax=fire.row+fire.size+1+buffer
+				ymax=fire.row+fire.size+buffer
 				cx = 0.5*(xmin+xmax)
 				cy = 0.5*(ymin+ymax)
 				rx=abs(0.5*(xmax-xmin))
@@ -167,19 +197,20 @@ def main():
 	num_inside = 8 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	[small_maze, maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[maze, fires, entrances] = maze_generation.generate_maze(num_rows=num_rows, num_cols=num_cols, num_fires_smol=num_fires_smol, num_fires_med=num_fires_med, num_fires_lrg=num_fires_lrg, num_inside=num_inside, num_ent=num_ent, plot_maze=plot_maze)
 	start = Node(entrances[0][0], entrances[0][1])
 	(hwalls, vwalls) = maze_generation.get_list_walls(maze)
 	print("rrt main start", start)
 	
-	bot = RRTBot(epsilon= 1, start=start, nrow=len(maze)-1, ncol=len(maze[0]), color='cyan', x=start.col, y=num_rows-start.row-1, theta=0)
+	bot = RRTBot(epsilon=0.5, start=start, nrow=len(maze)-1, ncol=len(maze[0]), color='cyan', x=start.col, y=num_rows-start.row-1, theta=0)
 	rrt_limit = 500
 	buffer = bot.radius * 1.1
 	# while bot.success<rrt_limit:
 		# print(bot.success)
 	while True:
 		bot.step(hwalls, vwalls, fires, buffer=buffer)
-		maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
+		if len(bot.path)<1:
+			maze_generation.plot(field=maze,path=None, bot=bot, fires=fires)
 	# plt.show()
 if __name__ == "__main__":
 	main()

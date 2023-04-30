@@ -189,7 +189,7 @@ class Fire:
 		self.size = size
 		
 		self.active = True
-			
+		self.found = False
 	def extinguish(self):
 		self.active = False
 		

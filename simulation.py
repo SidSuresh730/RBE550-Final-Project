@@ -31,7 +31,7 @@ class Simulation:
 		self.num_fires_lrg = lrg # Number of 3x3 in the maze
 		self.num_inside = num_inside # Number of padding inside each cell
 		self.num_ent = num_ent # Number of entrances to the maze
-		self.plot_maze = True
+		self.plot_maze = False
 		[self.maze, self.fires, self.entrances] = generate_maze(self.num_rows, self.num_cols, self.num_fires_smol, self.num_fires_med, self.num_fires_lrg, self.num_inside, self.num_ent, self.plot_maze)
 		self.hwalls,self.vwalls= get_list_walls(self.maze)
 		nrow=len(self.maze)
@@ -77,6 +77,7 @@ class Simulation:
 		point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
+		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=bot.frontier_min*self.pixel_factor, width=1,color=BLACK)
 
 	def draw_fires(self):
 		for fire in self.fires:
@@ -86,8 +87,8 @@ class Simulation:
 			r=pygame.Rect(left,top,w,w)
 			if fire.active:
 				pygame.draw.rect(surface=WIN,rect=r,color=RED)
-			else:
-				pygame.draw.rect(surface=WIN,rect=r,color=BLACK)
+			# else:
+			# 	pygame.draw.rect(surface=WIN,rect=r,color=TAN)
 
 	def draw_window(self):
 		# pygame.init()
@@ -96,24 +97,30 @@ class Simulation:
 		self.draw_field()
 		# print obstacles
 		self.draw_obstacles()
+		# draw fires
+		self.draw_fires()
 		# print robots
 		for b in self.robots:
 			self.draw_robot(b)
-		# draw fires
-		self.draw_fires()
 		pygame.display.update()
 
 	def run(self):#, simtime):
 		pygame.init()
 		clock = pygame.time.Clock()
 		run=True
+		bot = self.robots[0]
 		while run:
 			clock.tick(FPS)
 			for event in pygame.event.get():
 				if event.type==pygame.QUIT:
 					run=False
-			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.5)	
 			self.draw_window()
+			bot.step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
+			bot = self.robots[0]
+			if bot.fail_counter>1000:
+				maze_generation.plot(field=self.maze,path=None, bot=bot, fires=self.fires)
+				bot.fail_counter=0
+			# self.draw_window()
 			# self.time+=1
 		# self.get_metrics(build_time,wumpus_time,truck_time)
 		pygame.quit()
@@ -140,7 +147,7 @@ def main():
 	theta=0
 	x=start.col
 	y=start.row
-	bot = RRTBot(epsilon= 1, start=start, nrow=nrows, ncol=ncols, color=GREEN,x=x,y=y,theta=theta)
+	bot = RRTBot(epsilon=0.5, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x,y=y,theta=theta)
 	sim.add_bot(bot)
 	sim.run()
 	# while True:

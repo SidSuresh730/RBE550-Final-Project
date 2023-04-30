@@ -12,12 +12,11 @@ class Bot():
 		self._x = x
 		self._y = y
 		self._theta=theta
-
 		self.path = []
 		self.radius=0.25		
 		self.path=None
 		self.tree = None
-		self._dt=0.1
+		self._dt=0.05
 
 	def collision_detect(self,x,y,hwalls,vwalls,buffer):
 		for wall in hwalls:
@@ -83,5 +82,42 @@ class Bot():
 	
 	# method for defining a cell that is useful for the algorithm
 	def cell(self, x, y):
-		# cell has length and width of 1
-		return (int(x), int(y))
+		# cell has length and width of n
+		return (x//0.5, y//0.5)
+		
+		
+
+	def line_box_collision(self,pos1,pos2,hwalls,vwalls):
+		list_points = list()
+		wall_width = 0.2
+		for wall in hwalls:
+			xmin=wall.llim
+			xmax=wall.ulim
+			ymin=wall.row-wall_width/2
+			ymax=wall.row+wall_width/2
+			list_points.append([xmin, ymin])
+			list_points.append([xmin, ymax])
+			list_points.append([xmax, ymin])
+			list_points.append([xmax, ymax])
+		for wall in vwalls:
+			xmin=wall.col-wall_width/2
+			xmax=wall.col+wall_width/2
+			ymin=wall.llim
+			ymax=wall.ulim
+			list_points.append([xmin, ymin])
+			list_points.append([xmin, ymax])
+			list_points.append([xmax, ymin])
+			list_points.append([xmax, ymax])
+		for point in list_points:
+			dist = self.point_line_dist(point, pos1, pos2)
+			if dist < self.radius:
+				return True
+		return False
+	
+	def point_line_dist(self, p0, p1_node, p2_node):
+		p1 = [p1_node.row, p1_node.col]
+		p2 = [p2_node.row, p2_node.col]
+		print("PLD", p0, p1, p2)
+		dist = abs((p2[0] - p1[0]) * (p2[1] - p1[1]) - (p1[0] - p0[0]) * (p1[1] - p0[1])) / math.sqrt(pow(p2[0] - p1[0], 2) + pow(p2[1] - p1[1], 2))
+		return dist
+
