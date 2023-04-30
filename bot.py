@@ -12,9 +12,13 @@ class Bot():
 		self._x = x
 		self._y = y
 		self._theta=theta
+<<<<<<< HEAD
 		self.path = []
+=======
+
+>>>>>>> 5138111a2319f2dba49140b5e2e7bd444f7f01f1
 		self.radius=0.25		
-		self.path=None
+		self.path=[]
 		self.tree = None
 		self._dt=0.05
 

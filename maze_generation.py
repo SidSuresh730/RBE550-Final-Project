@@ -379,7 +379,7 @@ def generate_maze(num_rows, num_cols, num_inside, num_fires_smol, num_fires_med,
 	return [big_maze, fires, entrances]
 	
 def main():
-	print("Run Maze Generation Main\n")
+	print("Run Maze Generation Main")
 	# ---- Run Maze Generation code
 	num_rows = 4 # Number of rows in the maze
 	num_cols = 4 # Number of columns in the maze
