@@ -31,7 +31,8 @@ class RRTBot(Bot):
 	# Output: None
 	def rrt_search(self, hwalls, vwalls, fires, buffer):
 		#random sample a node
-		self.frontiers = PriorityQueue()
+		# self.frontiers = PriorityQueue()
+		new_frontiers=0
 		# self.roots.append(self.current_pos)
 		pqueue = PriorityQueue()
 		while self.success<100:
@@ -56,7 +57,7 @@ class RRTBot(Bot):
 					q_new.row=y
 					q_new.col=x
 					q_new.parent = q_curr
-					# q_new.f = -1*distance(q_new,self.current_pos)
+					q_new.f = -1*distance(q_new,q_curr)
 					# pqueue.add(q_new)
 					if not outside_bounds:
 						self.success+=1
@@ -67,10 +68,11 @@ class RRTBot(Bot):
 						if frontier:
 							q_new.f=-1*distance(q_new,self.current_pos)
 							self.frontiers.add(q_new)
+							new_frontiers+=1
 							# print("Frontier",len(frontiers))
-						if len(self.frontiers.q)>20:
-							q = self.frontiers.get_min_dist_element()
-							self.path = self.build_path(q)
+						if new_frontiers>10:
+							# q = self.frontiers.get_min_dist_element()
+							# self.path = self.build_path(q)
 							break
 					if fire:
 						print("Fire!")
@@ -118,9 +120,9 @@ class RRTBot(Bot):
 			print("Running RRT")
 			# self.tree=Graph(self.current_pos)
 			self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
-			# if len(self.frontiers.q)>0:
-			# 	front = self.frontiers.get_min_dist_element()
-			# 	self.build_path(front)					
+			if len(self.frontiers.q)>0:
+				front = self.frontiers.get_min_dist_element()
+				self.path=self.build_path(front)					
 			# print(self.path)
 			if self.current_pos != self.root:
 				path_to_root = self.build_path(self.current_pos)
@@ -130,7 +132,7 @@ class RRTBot(Bot):
 				# 	for q in path_to_root:
 				# 		if q in self.path:
 				# 			self.path.remove(q)
-				# print("Path: ",len(self.path),"P2R: ",len(path_to_root))
+				print("Path: ",len(self.path),"P2R: ",len(path_to_root))
 				# iters=min(len(self.path),len(path_to_root))
 				# for i in range(iters):
 				# 	print(i)
