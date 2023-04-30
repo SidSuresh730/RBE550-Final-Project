@@ -13,9 +13,8 @@ class Bot():
 		self._y = y
 		self._theta=theta
 
-		self.path = []
 		self.radius=0.25		
-		self.path=None
+		self.path=[]
 		self.tree = None
 		self._dt=0.1
 

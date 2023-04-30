@@ -16,6 +16,8 @@ class ABot(Bot):
 		self.maze = np.zeros((self.nrow * 2 + 1, self.ncol * 2 + 1))
 		self.big_maze = 0
 		self.destination = None
+		
+		self.loc_path = list()
 
 	# a_star: Main path navigation function. Generates the shortest path through an occupancy grid maze using nodes 
 	# Inputs:
@@ -55,7 +57,6 @@ class ABot(Bot):
 		return path
 
 	def local_planner(self, path, maze):
-		print("Cool!")
 		(hwalls, vwalls) = maze_generation.get_list_walls(maze)
 		optimal_path = list()
 		optimal_path.append(path[0])
@@ -86,24 +87,36 @@ class ABot(Bot):
 		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
 			return False
 		return True
+	
+	def step(self):
+		self.loc_path.append(Node(self.nrow - self._y - 1, self._x))
+		if self.destination:
+			if round(pn_distance([self._x, self._y], Node(self.goal[0], self.goal[1]), self.nrow), 4) == 0:
+				return True 
+			else:
+				self.motion_primitive()
+		elif self.goal:
+			start = (round(len(self.big_maze[0])-self._y-1, 4), round(self._x, 4))
+			path = self.a_star(start, self.goal, self.big_maze)	
+			self.path = self.local_planner(path, self.big_maze)
+			self.destination = self.path.pop()
 
 	def motion_primitive(self):
+		max_ang = 0.05
+		max_move = 0.1 
 		distance_to_dest = pn_distance([self._x, self._y], self.destination, self.nrow)
-		angle_to_dest = pn_direction([self._x, self._y], self.destination, self.nrow) - self._theta 
-		angle_to_dest = angle_to_dest % (2*pi)
-		print(angle_to_dest)
-		if distance_to_dest < .1:
-			print("Getting new destination")
+		angle_to_dest = (pn_direction([self._x, self._y], self.destination, self.nrow) - self._theta) % (2*pi)
+		angle_to_dest = angle_to_dest 
+		if round(distance_to_dest, 4) == 0:
 			self.destination = self.path.pop()
 		else:
-			if abs(angle_to_dest) > 0.01:
-				print("Angle")
-				self._theta += 0.01 * ((angle_to_dest > 0) * 2 - 1)
-				self._theta = self._theta % (2*pi)
+			if abs(angle_to_dest) > 0.001:
+				inc_val = min(angle_to_dest, max_ang)
+				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) % (2*pi)
 			else:
-				print("Loc")
-				self._x += cos(self._theta) * 0.1
-				self._y += sin(self._theta) * 0.1
+				inc_val = min(distance_to_dest, max_move)
+				self._x += inc_val * cos(self._theta)
+				self._y += inc_val * sin(self._theta)
 
 def main():
 	print("A Star Main\n")

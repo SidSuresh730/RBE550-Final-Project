@@ -167,7 +167,7 @@ def main():
 	num_inside = 8 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	[small_maze, maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
+	[maze, fires, entrances] = maze_generation.generate_maze(num_rows, num_cols, num_fires_smol, num_fires_med, num_fires_lrg, num_inside, num_ent, plot_maze)
 	start = Node(entrances[0][0], entrances[0][1])
 	(hwalls, vwalls) = maze_generation.get_list_walls(maze)
 	print("rrt main start", start)
