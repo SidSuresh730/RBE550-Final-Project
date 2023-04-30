@@ -12,10 +12,13 @@ class Bot():
 		self._x = x
 		self._y = y
 		self._theta=theta
+		
 		self.radius=0.25		
 		self.path=[]
 		self.tree = Graph(Node(y, x))
 		self._dt=0.05
+		self.goal = None
+		self.destination = None
 
 	def collision_detect(self,x,y,hwalls,vwalls,buffer):
 		for wall in hwalls:
@@ -52,20 +55,22 @@ class Bot():
 				return True
 		return False		
 		
-	def kin_move(self, u_omega, u_psi):	
-		# calculate deltas based on nonholonomic constraints of diwheel robot
-		xD = self._r*u_omega*cos(self._theta)
-		yD = self._r*u_omega*sin(self._theta)
-		thetaD = self._r/self._L*round(u_psi,4)
-
-		# integrate deltas for a small timestep, dt
-		# round the results
-		self._x += round(xD*self._dt, 4)
-		self._y += round(yD*self._dt, 4)
-		self._theta += round(thetaD*self._dt, 2)
-		# limit theta to domain [0, 2*pi)
-		self._theta = round(self._theta%(2*pi),2)
-		# self._corners = self.getPoints(self._x, self._y, self._theta)
+	def motion_primitive(self):
+		max_ang = 1
+		max_move = 2
+		distance_to_dest = distance(Node(self._y, self._x), self.destination)
+		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta) % (2*pi)
+		angle_to_dest = angle_to_dest 
+		if round(distance_to_dest, 4) == 0:
+			self.destination = self.path.pop()
+		else:
+			if abs(angle_to_dest) > 0.001:
+				inc_val = min(angle_to_dest, max_ang)
+				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) % (2*pi)
+			else:
+				inc_val = min(distance_to_dest, max_move)
+				self._x += inc_val * cos(self._theta)
+				self._y += inc_val * sin(self._theta)
 	
 	def conv(self, row):
 		return self.nrow - row - 1

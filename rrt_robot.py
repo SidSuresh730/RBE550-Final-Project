@@ -47,7 +47,6 @@ class RRTBot(Bot):
 			dis = distance(q_curr, q_rand)
 			# print(dis,dir)
 			#attempt to grow tree in direction of q_rand a maximum of epsilon
-			# q_new = Node(row=round(q_curr.row + (dis%self.epsilon)*math.sin(dir),2),col=round(q_curr.col +(dis%self.epsilon)*math.cos(dir),2))
 			q_new = Node(row=round(q_curr.row + min(dis,self.epsilon)*math.sin(dir),2),col=round(q_curr.col + min(dis,self.epsilon)*math.cos(dir),2))
 			# print(min(dis,self.epsilon)*math.sin(dir), min(dis,self.epsilon)*math.cos(dir), min(dis,self.epsilon))
 			# print(q_rand,q_new,q_curr)
@@ -67,7 +66,7 @@ class RRTBot(Bot):
 						self.tree.E.append(possible_edge)
 						pqueue.add(q_new)
 						if frontier:
-							q_new.f=-1*distance(q_new,self.current_pos)
+							#q_new.f=-1*distance(q_new,self.current_pos)
 							self.frontiers.add(q_new)
 							new_frontiers+=1
 							# print("Frontier",len(frontiers))
@@ -79,13 +78,14 @@ class RRTBot(Bot):
 						print("Fire!")
 						self.fire=fire
 						fire.found=True
-						self.path = self.build_path(q_new)
+						fire_node = Node(fire.row, fire.col)
+						fire_node.parent = q_curr
+						self.tree.V.append(fire_node)
+						self.tree.E.append((q_curr, fire_node))
+						self.path = self.build_path(fire_node)
+						self.destination = self.path.pop()
+						self.goal = self.path[0]
 						break
-					# # Willy wonky case
-					# if self.success==99 and len(self.frontiers)==0:
-					# 	print("Wonky")
-					# 	q = pqueue.get_min_dist_element()
-					# 	self.frontiers.append(q)
 				else:
 					self.fail_counter+=1
 		self.success=0
@@ -107,18 +107,17 @@ class RRTBot(Bot):
 	
 	def step(self,hwalls,vwalls,fires,buffer):
 		t_start = process_time()
-		if len(self.path)>0:
-			print("on my way")
-			self.current_pos = self.path.pop()
-			self.reverse_path.append(self.current_pos)
-			self._x, self._y = (self.current_pos.col, self.current_pos.row)
-			#print("Path length: ",len(self.path))
+		if self.destination:
+			if round(distance(Node(self._y, self._x), Node(self.goal[0], self.goal[1])), 4) == 0:
+				self.goal = None
+				self.destination = None
+			else:
+				self.motion_primitive()
+				(self.current_pos.col, self.current_pos.row) = (self._x, self._y)
 		elif self.fire:
 			self.fire.found=True
-			#self.fire=None
 			self.path = self.build_path(self.astar_loc)
 			path_to_root = self.build_path(self.current_pos)
-			print("ISJDHVPKSJDNPKISJDNBVO{SIUDHBOISPUDJNSIODFUBSDOIFJSODIBJSOD{IBJSDO{PBJS")
 			path_to_root.reverse()
 			temp = self.path+path_to_root
 			for n in self.path:
@@ -128,7 +127,11 @@ class RRTBot(Bot):
 				if n in self.path:
 					temp.remove(n)
 			self.path=temp
-			self.astar_loc = Node
+			self.goal = self.path[0]
+			astar_loc = Node(self.fire.row, self.fire.col)
+			astar_loc.parent=self.current_pos
+			self.astar_loc = astar_loc
+			#self.astar_loc=self.current_pos
 		else:
 			print("Running RRT")
 			self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
@@ -147,7 +150,9 @@ class RRTBot(Bot):
 					if n in self.path:
 						temp.remove(n)
 				self.path=temp
-			
+			self.destination = self.path.pop()
+			self.goal = (self.path[0].row, self.path[0].col)
+			print("Step else goal:", self.goal)
 		t_stop = process_time()
 		return t_stop-t_start
 
@@ -204,6 +209,7 @@ class RRTBot(Bot):
 		return min_node
 	
 	def fire_detect(self,x,y,fires,buffer):
+		buffer=0
 		for fire in fires:
 			if not fire.found:
 				not_y,not_x=False,False

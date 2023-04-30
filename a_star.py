@@ -11,11 +11,9 @@ from bot import Bot
 class ABot(Bot):
 	def __init__(self, nrow, ncol, color, x, y, theta) -> None:
 		super().__init__(nrow, ncol, color, x, y, theta)
-		self.goal = None
-		self.destination = None
+
 		self.maze = np.zeros((self.nrow * 2 + 1, self.ncol * 2 + 1))
 		self.big_maze = 0
-		self.destination = None
 		
 		self.loc_path = list()
 
@@ -100,23 +98,6 @@ class ABot(Bot):
 			path = self.a_star(start, self.goal, self.big_maze)	
 			self.path = self.local_planner(path, self.big_maze)
 			self.destination = self.path.pop()
-
-	def motion_primitive(self):
-		max_ang = 0.2
-		max_move = 1
-		distance_to_dest = distance(Node(self._y, self._x), self.destination)
-		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta) % (2*pi)
-		angle_to_dest = angle_to_dest 
-		if round(distance_to_dest, 4) == 0:
-			self.destination = self.path.pop()
-		else:
-			if abs(angle_to_dest) > 0.001:
-				inc_val = min(angle_to_dest, max_ang)
-				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) % (2*pi)
-			else:
-				inc_val = min(distance_to_dest, max_move)
-				self._x += inc_val * cos(self._theta)
-				self._y += inc_val * sin(self._theta)
 
 def main():
 	print("A Star Main\n")

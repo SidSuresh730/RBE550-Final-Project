@@ -128,12 +128,17 @@ class Simulation:
 				if event.type==pygame.QUIT:
 					run=False
 			self.draw_window()
-			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
+			print(self.robots[0].goal)
+			print(self.robots[0].destination)
+			#done2 = self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
 			done = self.robots[1].step()
 			if done:
+				self.robots[1].goal = None
+				self.robots[1].destination = None
 				print("Done!")
-				while 69:
-					lol = 420
+			#if done2:
+			#	self.robots[0].goal = None
+			#	self.robots[0].destination = None
 			if self.robots[0].fire:
 				# Got to A* pos
 				print("Hey!", distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)))
@@ -144,12 +149,12 @@ class Simulation:
 		pygame.quit()
 
 def main():
-	nrows=2
-	ncols=2
-	smol=0
-	med=0
+	nrows=4
+	ncols=4
+	smol=5
+	med=3
 	lrg=1
-	num_inside=10
+	num_inside=8
 	num_ent=1
 	pixel_factor=20
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
