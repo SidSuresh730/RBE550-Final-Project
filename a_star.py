@@ -12,9 +12,7 @@ class ABot(Bot):
 	def __init__(self, nrow, ncol, color, x, y, theta) -> None:
 		super().__init__(nrow, ncol, color, x, y, theta)
 
-		self.maze = np.zeros((self.nrow * 2 + 1, self.ncol * 2 + 1))
-		self.big_maze = 0
-		
+		self.maze = None
 		self.loc_path = list()
 
 	# a_star: Main path navigation function. Generates the shortest path through an occupancy grid maze using nodes 
