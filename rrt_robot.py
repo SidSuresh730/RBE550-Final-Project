@@ -17,26 +17,28 @@ class RRTBot(Bot):
 		self.tree = Graph(start)
 		# self.collisions = 0
 		self.success = 0
-		self.frontier_min=3*self.epsilon
+		self.frontier_min=5*self.epsilon
 		self.frontier_max=8*self.epsilon
 		self.visited=[]
 		self.fail_counter=0
 		self.fire = None
+		self.frontiers=PriorityQueue()
+		self.root=self.current_pos
+		self.reverse_path=[]
 	
 	# one iteration of the RRT algorithm
 	# Input: None
 	# Output: None
 	def rrt_search(self, hwalls, vwalls, fires, buffer):
 		#random sample a node
-		frontiers = []
+		self.frontiers = PriorityQueue()
+		# self.roots.append(self.current_pos)
 		pqueue = PriorityQueue()
-		num_fail=0
-		f=0
 		while self.success<100:
 			# print(self.success, self.ncol, self.nrow)
 			q_rand = Node(random.uniform(0,self.nrow-1), random.uniform(0,self.ncol-1))
-			while self.cell(q_rand.col,q_rand.row) in self.visited:
-				q_rand = Node(random.uniform(0,self.nrow-1), random.uniform(0,self.ncol-1))
+			# while self.cell(q_rand.col,q_rand.row) in self.visited:
+			# 	q_rand = Node(random.uniform(0,self.nrow-1), random.uniform(0,self.ncol-1))
 			#find closest node in tree to random node
 			q_curr = self.find_closest_node(q_rand)
 			dir = direction(q_curr, q_rand)
@@ -47,72 +49,110 @@ class RRTBot(Bot):
 			q_new = Node(row=round(q_curr.row + min(dis,self.epsilon)*math.sin(dir),2),col=round(q_curr.col + min(dis,self.epsilon)*math.cos(dir),2))
 			# print(min(dis,self.epsilon)*math.sin(dir), min(dis,self.epsilon)*math.cos(dir), min(dis,self.epsilon))
 			# print(q_rand,q_new,q_curr)
-			possible_edge = (q_curr, q_new)
-			(x,y,collision,outside_bounds,frontier,fire)=self.local_planner(q_curr,q_new,hwalls,vwalls,fires,buffer=buffer)
-			if not collision:
-				q_new.row=y
-				q_new.col=x
-				q_new.parent = q_curr
-				q_new.g = -1*distance(q_new,self.current_pos)
-				# pqueue.add(q_new)
-				if not outside_bounds:
-					self.tree.V.append(q_new)
-					self.visited.append(self.cell(q_new.col,q_new.row))
-					self.tree.E.append(possible_edge)
-					pqueue.add(q_new)
-					if frontier:
-						f+=1
-						print("Frontier",f)
-						frontiers.append(q_new)
-						if len(frontiers)>5:
-							# self.build_path(q_new)
+			if self.cell(q_new.col,q_new.row) not in self.visited:
+				possible_edge = (q_curr, q_new)
+				(x,y,collision,outside_bounds,frontier,fire)=self.local_planner(q_curr,q_new,hwalls,vwalls,fires,buffer=buffer)
+				if not collision:
+					q_new.row=y
+					q_new.col=x
+					q_new.parent = q_curr
+					# q_new.f = -1*distance(q_new,self.current_pos)
+					# pqueue.add(q_new)
+					if not outside_bounds:
+						self.success+=1
+						self.tree.V.append(q_new)
+						self.visited.append(self.cell(q_new.col,q_new.row))
+						self.tree.E.append(possible_edge)
+						pqueue.add(q_new)
+						if frontier:
+							q_new.f=-1*distance(q_new,self.current_pos)
+							self.frontiers.add(q_new)
+							# print("Frontier",len(frontiers))
+						if len(self.frontiers.q)>20:
+							q = self.frontiers.get_min_dist_element()
+							self.path = self.build_path(q)
 							break
-					self.success+=1
-				if fire:
-					print("Fire!")
-					fire.active=False
-					self.build_path(q_new)
-					break
-				# Willy wonky case
-				if self.success==99 and len(frontiers)==0:
-					print("Wonky")
-					q = pqueue.get_min_dist_element()
-					frontiers.append(q)
-			else:
-				self.fail_counter+=1
+					if fire:
+						print("Fire!")
+						self.fire=fire
+						fire.found=True
+						self.path = self.build_path(q_new)
+						break
+					# # Willy wonky case
+					# if self.success==99 and len(self.frontiers)==0:
+					# 	print("Wonky")
+					# 	q = pqueue.get_min_dist_element()
+					# 	self.frontiers.append(q)
+				else:
+					self.fail_counter+=1
 		self.success=0
 		# print(frontiers)
-		return frontiers
+		# return self.frontiers
 
 	def build_path(self,q_new):
 		print("Building path")
-		self.path=[]
+		path=[]
 		curr = q_new
-		while curr != self.current_pos:
+		# while curr != self.current_pos:
+		while curr != self.root:
 			# print("Building!")
-			self.path.append(curr)
+			path.append(curr)
 			curr=curr.parent
 			# print(curr)
+		return path
+
 	
 	def step(self,hwalls,vwalls,fires,buffer):
 		t_start = process_time()
 		if len(self.path)>0:
 			print("on my way")
 			self.current_pos = self.path.pop()
+			self.reverse_path.append(self.current_pos)
 			self._x, self._y = (self.current_pos.col, self.current_pos.row)
+			print("Path length: ",len(self.path))
+		elif self.fire:
+			self.fire.found=True
+			self.fire=None
+				# print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 		else:
-			if self.fire:
-				self.fire.active=False
-				self.fire=None
 			print("Running RRT")
-			self.tree=Graph(self.current_pos)
-			frontiers = self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
-			# if len(self.path)==0:
-			# 	self.fail_counter+=1
-			if frontiers:
-				front = frontiers.pop()
-				self.build_path(front)
+			# self.tree=Graph(self.current_pos)
+			self.rrt_search(hwalls=hwalls,vwalls=vwalls,fires=fires,buffer=buffer)
+			# if len(self.frontiers.q)>0:
+			# 	front = self.frontiers.get_min_dist_element()
+			# 	self.build_path(front)					
 			# print(self.path)
+			if self.current_pos != self.root:
+				path_to_root = self.build_path(self.current_pos)
+				# path_to_root.reverse()
+				# print("Path: ",self.)
+				# if set(path_to_root).issubset(set(self.path)):
+				# 	for q in path_to_root:
+				# 		if q in self.path:
+				# 			self.path.remove(q)
+				# print("Path: ",len(self.path),"P2R: ",len(path_to_root))
+				# iters=min(len(self.path),len(path_to_root))
+				# for i in range(iters):
+				# 	print(i)
+				# 	if self.path[iters-i-1] != path_to_root[iters-i-1]:
+				# 		self.path=self.path[:i]
+				# 		path_to_root=path_to_root[:i+1]
+				# 		break
+				# # path_to_root.reverse()
+				# self.path.reverse()
+				# self.path.reverse()
+				path_to_root.reverse()
+				temp = self.path+path_to_root
+				for n in self.path:
+					if n in path_to_root:
+						temp.remove(n)
+				for n in path_to_root:
+					if n in self.path:
+						temp.remove(n)
+				self.path=temp
+				# self.path.reverse()
+				# self.path=path_to_root+self.path
+			
 		t_stop = process_time()
 		return t_stop-t_start
 
@@ -144,10 +184,10 @@ class RRTBot(Bot):
 			x+=remainder*math.cos(dir)
 			y+=remainder*math.sin(dir)
 		# y=self.conv(y)
+		(fire, detected) = self.fire_detect(x,y,fires,buffer)
 		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
 			collision=True
-		(fire, detected) = self.fire_detect(x,y,fires,buffer)
-		if detected:
+		elif detected:
 			fire_detected=fire
 		if distance(Node(y,x),self.current_pos)>self.frontier_max:
 			outside_bounds=True
@@ -170,7 +210,7 @@ class RRTBot(Bot):
 	
 	def fire_detect(self,x,y,fires,buffer):
 		for fire in fires:
-			if fire.active:
+			if not fire.found:
 				not_y,not_x=False,False
 				xmin=fire.col-buffer
 				xmax=fire.col+fire.size+buffer

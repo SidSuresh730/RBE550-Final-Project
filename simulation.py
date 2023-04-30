@@ -15,7 +15,7 @@ from time import process_time
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 5
+FPS = 60
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
 pygame.display.set_caption("First Line Robust Automatic Aviators: Two Blind Mice")
@@ -78,14 +78,21 @@ class Simulation:
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=bot.frontier_min*self.pixel_factor, width=1,color=BLACK)
-
+		for edge in bot.tree.E:
+			x_arr = self.pixel_factor*np.array([edge[0].col, (edge[0].row)])+self.offset+(0.5,0.5)
+			y_arr = self.pixel_factor*np.array([edge[1].col, (edge[1].row)])+self.offset+(0.5,0.5)
+			points=[x_arr,y_arr]
+			pygame.draw.lines(surface=WIN,color=BLACK,points=points,closed=False)
+			# plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)
 	def draw_fires(self):
 		for fire in self.fires:
 			top=self.pixel_factor*(fire.row-fire.size+1)+self.offset[0]
 			left=self.pixel_factor*(fire.col)+self.offset[1]
 			w=self.pixel_factor*(fire.size)
 			r=pygame.Rect(left,top,w,w)
-			if fire.active:
+			if fire.found:
+				pygame.draw.rect(surface=WIN,rect=r,color=GREEN)
+			elif fire.active:
 				pygame.draw.rect(surface=WIN,rect=r,color=RED)
 			# else:
 			# 	pygame.draw.rect(surface=WIN,rect=r,color=TAN)
@@ -117,9 +124,9 @@ class Simulation:
 			self.draw_window()
 			bot.step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
 			bot = self.robots[0]
-			if bot.fail_counter>1000:
-				maze_generation.plot(field=self.maze,path=None, bot=bot, fires=self.fires)
-				bot.fail_counter=0
+			# if bot.current_pos==bot.root:
+			# 	maze_generation.plot(field=self.maze,path=None, bot=bot, fires=self.fires)
+			# 	bot.fail_counter=0
 			# self.draw_window()
 			# self.time+=1
 		# self.get_metrics(build_time,wumpus_time,truck_time)

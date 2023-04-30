@@ -82,7 +82,7 @@ class Bot():
 	# method for defining a cell that is useful for the algorithm
 	def cell(self, x, y):
 		# cell has length and width of n
-		n=1
+		n=self.radius
 		return (x//n, y//n)
 		
 		
