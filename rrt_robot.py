@@ -18,7 +18,7 @@ class RRTBot(Bot):
 		# self.collisions = 0
 		self.success = 0
 		self.frontier_min=3*self.epsilon
-		self.frontier_max=5*self.epsilon
+		self.frontier_max=8*self.epsilon
 		self.visited=[]
 		self.fail_counter=0
 		self.fire = None
@@ -54,17 +54,19 @@ class RRTBot(Bot):
 				q_new.col=x
 				q_new.parent = q_curr
 				q_new.g = -1*distance(q_new,self.current_pos)
-				pqueue.add(q_new)
+				# pqueue.add(q_new)
 				if not outside_bounds:
 					self.tree.V.append(q_new)
 					self.visited.append(self.cell(q_new.col,q_new.row))
 					self.tree.E.append(possible_edge)
+					pqueue.add(q_new)
 					if frontier:
 						f+=1
 						print("Frontier",f)
 						frontiers.append(q_new)
-						# self.build_path(q_new)
-						# break
+						if len(frontiers)>5:
+							# self.build_path(q_new)
+							break
 					self.success+=1
 				if fire:
 					print("Fire!")

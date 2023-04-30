@@ -12,11 +12,6 @@ class Bot():
 		self._x = x
 		self._y = y
 		self._theta=theta
-<<<<<<< HEAD
-		self.path = []
-=======
-
->>>>>>> 5138111a2319f2dba49140b5e2e7bd444f7f01f1
 		self.radius=0.25		
 		self.path=[]
 		self.tree = None
@@ -87,7 +82,8 @@ class Bot():
 	# method for defining a cell that is useful for the algorithm
 	def cell(self, x, y):
 		# cell has length and width of n
-		return (x//0.5, y//0.5)
+		n=1
+		return (x//n, y//n)
 		
 		
 

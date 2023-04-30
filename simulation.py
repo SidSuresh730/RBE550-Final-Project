@@ -32,7 +32,7 @@ class Simulation:
 		self.num_inside = num_inside # Number of padding inside each cell
 		self.num_ent = num_ent # Number of entrances to the maze
 		self.plot_maze = False
-		[self.maze, self.fires, self.entrances] = generate_maze(self.num_rows, self.num_cols, self.num_fires_smol, self.num_fires_med, self.num_fires_lrg, self.num_inside, self.num_ent, self.plot_maze)
+		[self.maze, self.fires, self.entrances] = generate_maze(num_rows=self.num_rows, num_cols=self.num_cols, num_fires_smol=self.num_fires_smol, num_fires_med=self.num_fires_med, num_fires_lrg=self.num_fires_lrg, num_inside=self.num_inside, num_ent=self.num_ent, plot_maze=self.plot_maze)
 		self.hwalls,self.vwalls= get_list_walls(self.maze)
 		nrow=len(self.maze)
 		ncol=len(self.maze[0])
