@@ -29,6 +29,15 @@ def distance(node1, node2):
 def direction(node1, node2):
 	return math.atan2(node2.row-node1.row, node2.col-node1.col)
 
+def pn_distance(point, node, num_rows):
+	return math.sqrt((point[0]-node.col)**2 + (point[1]-(num_rows-node.row-1))**2)
+
+def pn_direction(point, node, num_rows):
+	#print("Pt", point)
+	#print("Nd", node)
+	#print("Nd conv", node.col, num_rows-node.row-1)
+	return math.atan2((num_rows-node.row-1)-point[1], node.col-point[0])
+	
 class Node:
 		def __init__(self, row, col):
 			# Row and col location of the Node

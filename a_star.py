@@ -2,26 +2,34 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt # Plotting our obstacle grid
 import math
+from math import sin, cos, pi
 from matplotlib.path import Path # Plotting our search algorithm path
 import maze_generation
 from data_structure_library import *
 from bot import Bot
-# g: Start node to node n
-# h: node n to end node
-# g + h = f
 
 class ABot(Bot):
 	def __init__(self, nrow, ncol, color, x, y, theta) -> None:
 		super().__init__(nrow, ncol, color, x, y, theta)
+		self.goal = None
+		self.destination = None
+		self.maze = np.zeros((self.nrow * 2 + 1, self.ncol * 2 + 1))
+		self.big_maze = 0
+		self.destination = None
 
-
+	# a_star: Main path navigation function. Generates the shortest path through an occupancy grid maze using nodes 
+	# Inputs:
+	#	start: Starting location of the bot as an array /list with values (row, col)
 	def a_star(self, start, end, maze):
 		pqueue = PriorityQueue()
 		nodes = generate_list_nodes(maze=maze, end=end)
 		start_node = find_node(start[0], start[1], nodes)
+		if not start_node:
+			nodes.append(Node(start[0], start[1]))
+			start_node = find_node(start[0], start[1], nodes)
 		start_node.g = 0
-		self.tree = Graph(start_node)
 		end_node = find_node(end[0], end[1], nodes)
+		self.tree = Graph(start_node)
 		path = []
 		current_node = start_node
 		pqueue.add(start_node)
@@ -38,22 +46,64 @@ class ABot(Bot):
 			path.append(current_node)
 			current_node = current_node.parent
 		path.append(current_node)
-		path.reverse()
-		
-		for p in path:
-			print("P", p)
-		
-		cool_path = self.local_plan(path, maze)
-		
+		#path.reverse()
+
 		#while len(pqueue.q) > 0:
 		#	v = pqueue.get_min_dist_element()
 		#	self.tree.remove_vertex(v)
 		#	self.tree.remove_edge((v.parent, v))	
 		return path
 
-	def local_plan(self, path, maze):
+	def local_planner(self, path, maze):
 		print("Cool!")
-		
+		(hwalls, vwalls) = maze_generation.get_list_walls(maze)
+		optimal_path = list()
+		optimal_path.append(path[0])
+		count = 0
+		for i in range(len(path) - 1):
+			path_good = self.check_path(optimal_path[count], path[i+1], hwalls, vwalls, buffer=0.1)
+			if not path_good:
+				optimal_path.append(path[i])
+				count += 1
+		optimal_path.append(path[-1])
+		return optimal_path
+	
+	def check_path(self,pos1,pos2,hwalls,vwalls,buffer):
+		dir=direction(pos1,pos2)
+		dis=distance(pos1,pos2)
+		(x,y) = (pos1.col,pos1.row)
+		commands = []
+		num_steps=dis//self._dt
+		num_iter=int(num_steps)
+		remainder=num_steps - num_iter
+		for i in range(num_iter):
+			x+=dis/num_iter*cos(dir)
+			y+=dis/num_iter*sin(dir)
+			if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
+				return False
+		x+=remainder*cos(dir)
+		y+=remainder*sin(dir)
+		if self.collision_detect(x,y,hwalls,vwalls,buffer=buffer):
+			return False
+		return True
+
+	def motion_primitive(self):
+		distance_to_dest = pn_distance([self._x, self._y], self.destination, self.nrow)
+		angle_to_dest = pn_direction([self._x, self._y], self.destination, self.nrow) - self._theta 
+		angle_to_dest = angle_to_dest % (2*pi)
+		print(angle_to_dest)
+		if distance_to_dest < .1:
+			print("Getting new destination")
+			self.destination = self.path.pop()
+		else:
+			if abs(angle_to_dest) > 0.01:
+				print("Angle")
+				self._theta += 0.01 * ((angle_to_dest > 0) * 2 - 1)
+				self._theta = self._theta % (2*pi)
+			else:
+				print("Loc")
+				self._x += cos(self._theta) * 0.1
+				self._y += sin(self._theta) * 0.1
 
 def main():
 	print("A Star Main\n")
@@ -74,7 +124,6 @@ def main():
 	start = entrances[0]
 	end = [1, 1]
 	path = bot.a_star(start, end, big_maze)
-
 	maze_generation.plot(big_maze, path, bot, fires)
 
 if __name__ == "__main__":
