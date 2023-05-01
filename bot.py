@@ -12,7 +12,7 @@ class Bot():
 		self._x = x
 		self._y = y
 		self._theta=theta
-		
+		self.fire = None
 		self.radius=0.25		
 		self.path=[]
 		self.tree = Graph(Node(y, x))
@@ -56,17 +56,19 @@ class Bot():
 		return False		
 		
 	def motion_primitive(self):
-		max_ang = 1
-		max_move = 2
+		max_ang = 0.3
+		max_move = 1
 		distance_to_dest = distance(Node(self._y, self._x), self.destination)
-		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta) % (2*pi)
+		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta)
 		angle_to_dest = angle_to_dest 
-		if round(distance_to_dest, 4) == 0:
+		# if round(distance_to_dest, 4) == 0:
+		if distance_to_dest == 0:
 			self.destination = self.path.pop()
 		else:
 			if abs(angle_to_dest) > 0.001:
-				inc_val = min(angle_to_dest, max_ang)
-				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) % (2*pi)
+				# print("Rofl comma copter", angle_to_dest)
+				inc_val = min(abs(angle_to_dest), max_ang)
+				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) 
 			else:
 				inc_val = min(distance_to_dest, max_move)
 				self._x += inc_val * cos(self._theta)
