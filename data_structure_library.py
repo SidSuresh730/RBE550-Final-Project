@@ -17,6 +17,7 @@ BLACK = (0,0,0)
 TAN = (210,180,140)
 WHITE = (255,255,255)
 FIRE_ENGINE_RED = (206,32,41) 
+CYAN = (0,255,255)
 
 # function for finding Euclidean distance between nodes
 # Input: Nodes

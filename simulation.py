@@ -40,7 +40,7 @@ class Simulation:
 		self.offset = ((WIDTH-ncol*self.pixel_factor)//2,(HEIGHT-nrow*self.pixel_factor)//2)
 		self.wall_thickness=1
 		self.robots=[]
-		self.staleness_counter=0
+		# self.staleness_counter=0
 	
 	# def set_wall_thickness(self,thickness):
 	# 	self.wall_thickness=thickness
@@ -50,8 +50,8 @@ class Simulation:
 	def draw_field(self):
 		left = self.offset[0]
 		top = self.offset[1]
-		nrow=len(self.maze)
-		ncol=len(self.maze[0])
+		nrow=len(self.maze)-1
+		ncol=len(self.maze[0])-1
 		width = ncol*self.pixel_factor
 		height = nrow*self.pixel_factor
 		borders = pygame.Rect(left,top,width,height)
@@ -100,11 +100,11 @@ class Simulation:
 			left=self.pixel_factor*(fire.col)+self.offset[1]
 			w=self.pixel_factor*(fire.size)
 			r=pygame.Rect(left,top,w,w)
-			pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((fire.col,fire.row))+self.offset,radius=self.pixel_factor,color=BLACK,width=0)
+			# pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((fire.col,fire.row))+self.offset,radius=self.pixel_factor,color=BLACK,width=0)
 			if not fire.active:
 				pygame.draw.rect(surface=WIN,rect=r,color=TAN)
 			elif fire.found:
-				pygame.draw.rect(surface=WIN,rect=r,color=GREEN)
+				pygame.draw.rect(surface=WIN,rect=r,color=DARK_GREEN)
 			else:
 				pygame.draw.rect(surface=WIN,rect=r,color=RED)
 
@@ -138,11 +138,11 @@ class Simulation:
 			# print(self.robots[0].goal)
 			# print(self.robots[0].destination)
 			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
-			done = self.robots[1].step()
-			if done:
-				self.robots[1].goal = None
-				self.robots[1].destination = None
-				print("Done!")
+			# done = self.robots[1].step()
+			# if done:
+			# 	self.robots[1].goal = None
+			# 	self.robots[1].destination = None
+			# 	print("Done!")
 			#if done2:
 			#	self.robots[0].goal = None
 			#	self.robots[0].destination = None
@@ -161,10 +161,10 @@ class Simulation:
 def main():
 	nrows=3
 	ncols=3
-	smol=3
-	med=2
-	lrg=1
-	num_inside=8
+	smol=0
+	med=1
+	lrg=0
+	num_inside=4
 	num_ent=1
 	pixel_factor=30
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
@@ -172,7 +172,7 @@ def main():
 	x=start.col
 	y=start.row
 	theta=sim.entrances[0][2]
-	bert = RRTBot(epsilon=0.3, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x-1,y=y,theta=theta)
+	bert = RRTBot(epsilon=0.3, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=CYAN,x=x-1,y=y,theta=theta)
 	terminator = ABot(len(sim.maze), len(sim.maze[0]), color=BLUE, x=x, y=y, theta=sim.entrances[0][2]) 
 	terminator.loc = start
 	terminator.big_maze = sim.maze

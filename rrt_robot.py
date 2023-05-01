@@ -60,11 +60,11 @@ class RRTBot(Bot):
 					q_new.col=x
 					q_new.parent = q_curr
 					count = 0
-					for v in self.tree.V:
-						if distance(q_new, v) < 1:
-							count += 1
-					q_new.f = count - distance(q_new, q_curr)
-					# q_new.f = -1*distance(q_new,q_curr)
+					# for v in self.tree.V:
+					# 	if distance(q_new, v) < 0.5:
+					# 		count += 1
+					# q_new.f = count - distance(q_new, q_curr)
+					q_new.f = -1*distance(q_new,q_curr)
 					# pqueue.add(q_new)
 					self.success+=1
 					self.tree.V.append(q_new)
@@ -76,7 +76,7 @@ class RRTBot(Bot):
 						self.frontiers.add(q_new)
 						new_frontiers+=1
 						# print("Frontier",len(frontiers))
-					if new_frontiers>10:
+					if new_frontiers>5:
 						# q = self.frontiers.get_min_dist_element()
 						# self.path = self.build_path(q)
 						break
@@ -251,7 +251,7 @@ class RRTBot(Bot):
 		return min_node
 	
 	def fire_detect(self,x,y,fires,buffer):
-		buffer=buffer*2
+		buffer=buffer*10
 		for fire in fires:
 			if not fire.found and fire.active:
 				# if distance(self.current_pos,Node(fire.row+fire.size/2,fire.col+fire.size/2))<self.radius*2:
