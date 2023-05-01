@@ -16,7 +16,7 @@ from time import process_time,sleep
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 30
+FPS = 45
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
 pygame.display.set_caption("First Line Robust Automatic Aviators: Two Blind Mice")
@@ -138,19 +138,13 @@ class Simulation:
 			# print(self.robots[0].goal)
 			# print(self.robots[0].destination)
 			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
-			# done = self.robots[1].step()
-			# if done:
-			# 	self.robots[1].goal = None
-			# 	self.robots[1].destination = None
-			# 	print("Done!")
-			#if done2:
-			#	self.robots[0].goal = None
-			#	self.robots[0].destination = None
+			done = self.robots[1].step()
+			if done:
+			 	self.robots[1].goal = None
+			 	self.robots[1].destination = None
 			if self.robots[0].fire:
 				# Got to A* pos
 				astar_pos=Node(self.robots[1]._y,self.robots[1]._x)
-				print("Hey!", distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)))
-				print(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x))
 				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 3 and self.robots[1].goal == None:
 					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
 					self.robots[1].fire = self.robots[0].fire
@@ -161,10 +155,10 @@ class Simulation:
 def main():
 	nrows=3
 	ncols=3
-	smol=0
+	smol=2
 	med=1
-	lrg=0
-	num_inside=4
+	lrg=1
+	num_inside=5
 	num_ent=1
 	pixel_factor=30
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
