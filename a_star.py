@@ -88,6 +88,10 @@ class ABot(Bot):
 		self.loc_path.append(Node(self._y, self._x))
 		if self.destination:
 			if round(distance(Node(self._y, self._x), Node(self.goal[0], self.goal[1])), 4) == 0:
+				if self.fire:
+					print("8======================================================================================D A*")
+					self.fire.active=False
+					self.fire=None
 				return True 
 			else:
 				self.motion_primitive()

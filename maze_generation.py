@@ -136,7 +136,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 		if maze[fire_row][fire_col] == 1:
 			maze[fire_row][fire_col] = 2
 			fires_made += 1
-			fires.append(Fire(fire_row, fire_col, .5))
+			fires.append(Fire(fire_row, fire_col, 1))
 	# Generate 2x2 fires
 	# Same idea for 1x1 fires, but now we need to start in the bottom left coord of the fire, and check top left, top right, and bottom right as well to make sure those locations are unoccupied
 	fires_made = 0
@@ -153,7 +153,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 				for j in range(med_size):
 					maze[fire_row - i][fire_col + j] = 2
 			fires_made += 1
-			fires.append(Fire(fire_row, fire_col, 1))
+			fires.append(Fire(fire_row, fire_col, 2))
 	# Generate 3x3 fires
 	# Same idea for 2x2 fires, but checks all 9 total coords
 	fires_made = 0
@@ -170,7 +170,7 @@ def generate_fires(maze, num_fires_smol, num_fires_med, num_fires_lrg):
 				for j in range(lrg_size):
 					maze[fire_row - i][fire_col + j] = 2
 			fires_made += 1
-			fires.append(Fire(fire_row, fire_col, 2))
+			fires.append(Fire(fire_row, fire_col, 3))
 	return maze, fires
 	
 # Function that places entrances in the maze, entrances are simply holes in the outer most maze walls

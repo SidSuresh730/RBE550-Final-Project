@@ -11,7 +11,7 @@ from rrt_robot import RRTBot
 from a_star import ABot
 from mapper_robot import *
 from fire_fighting_robot import *
-from time import process_time
+from time import process_time,sleep
 
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
@@ -40,6 +40,7 @@ class Simulation:
 		self.offset = ((WIDTH-ncol*self.pixel_factor)//2,(HEIGHT-nrow*self.pixel_factor)//2)
 		self.wall_thickness=1
 		self.robots=[]
+		self.staleness_counter=0
 	
 	# def set_wall_thickness(self,thickness):
 	# 	self.wall_thickness=thickness
@@ -60,46 +61,52 @@ class Simulation:
 		(hwalls,vwalls) = get_list_walls(self.maze)
 		for wall in hwalls:
 			xmin=wall.llim
-			xmax=wall.ulim+1
-			ymin=wall.row
-			ymax=wall.row+self.wall_thickness
+			xmax=wall.ulim
+			ymin=wall.row-0.1
+			ymax=wall.row+0.1#+self.wall_thickness
 			corners=np.array([(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)])
 			pygame.draw.polygon(surface=WIN,color=BLACK,points=self.pixel_factor*corners+self.offset)
 		for wall in vwalls:
 			ymin=wall.llim
-			ymax=wall.ulim+1
-			xmin=wall.col
-			xmax=wall.col+self.wall_thickness
+			ymax=wall.ulim
+			xmin=wall.col-0.1
+			xmax=wall.col+0.1#self.wall_thickness
 			corners=np.array([(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)])
 			pygame.draw.polygon(surface=WIN,color=BLACK,points=self.pixel_factor*corners+self.offset)
 
 	def draw_robot(self, bot):
-		(x,y,theta,r)=(bot._x+0.5,bot._y+0.5,bot._theta,bot.radius)
-		point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
+		(x,y,theta,r)=(bot._x,bot._y,bot._theta,bot.radius)
+		# point_center=np.array((x+0.75*r*cos(theta),y+0.75*r*sin(theta)))
+		point_center=np.array((x+5*r*cos(theta),y+2*r*sin(theta)))
+		point=np.array((x,y))
 		pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=self.pixel_factor*r,color=bot.color)
-		pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r,color=BLACK)
+		# pygame.draw.circle(surface=WIN,center=self.pixel_factor*point_center+self.offset,radius=self.pixel_factor*0.125*r*2,color=BLACK)
 		if type(bot) == RRTBot:
+			(x,y,theta,r)=(bot.current_pos.col,bot.current_pos.row,bot._theta,bot.radius)
 			pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((x,y))+self.offset,radius=bot.frontier_min*self.pixel_factor, width=1,color=BLACK)
 			for edge in bot.tree.E:
-				x_arr = self.pixel_factor*np.array([edge[0].col, (edge[0].row)])+self.offset+(0.5,0.5)
-				y_arr = self.pixel_factor*np.array([edge[1].col, (edge[1].row)])+self.offset+(0.5,0.5)
+				x_arr = self.pixel_factor*np.array([edge[0].col, (edge[0].row)])+self.offset
+				y_arr = self.pixel_factor*np.array([edge[1].col, (edge[1].row)])+self.offset
 				points=[x_arr,y_arr]
 				pygame.draw.lines(surface=WIN,color=BLACK,points=points,closed=False)
 		if type(bot) == ABot:
-			nice = 69
+			pass
+			# pygame.draw.lines(surface=WIN,points=[self.pixel_factor*point+self.offset,self.pixel_factor*point_center+self.offset],closed=False,color=BLACK,width=5)
+
 
 	def draw_fires(self):
 		for fire in self.fires:
-			top=self.pixel_factor*(fire.row-fire.size+1)+self.offset[0]
+			top=self.pixel_factor*(fire.row-fire.size)+self.offset[0]
 			left=self.pixel_factor*(fire.col)+self.offset[1]
 			w=self.pixel_factor*(fire.size)
 			r=pygame.Rect(left,top,w,w)
-			if fire.found:
+			pygame.draw.circle(surface=WIN,center=self.pixel_factor*np.array((fire.col,fire.row))+self.offset,radius=self.pixel_factor,color=BLACK,width=0)
+			if not fire.active:
+				pygame.draw.rect(surface=WIN,rect=r,color=TAN)
+			elif fire.found:
 				pygame.draw.rect(surface=WIN,rect=r,color=GREEN)
-			elif fire.active:
+			else:
 				pygame.draw.rect(surface=WIN,rect=r,color=RED)
-			# else:
-			# 	pygame.draw.rect(surface=WIN,rect=r,color=TAN)
 
 	def draw_window(self):
 		# pygame.init()
@@ -117,18 +124,20 @@ class Simulation:
 
 	def run(self):#, simtime):
 		pygame.init()
+		i=0
 		clock = pygame.time.Clock()
 		run=True
 		done = False
 		while run:
+			i+=1
 			clock.tick(FPS)
 			for event in pygame.event.get():
 				if event.type==pygame.QUIT:
 					run=False
 			self.draw_window()
-			print(self.robots[0].goal)
-			print(self.robots[0].destination)
-			#done2 = self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
+			# print(self.robots[0].goal)
+			# print(self.robots[0].destination)
+			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
 			done = self.robots[1].step()
 			if done:
 				self.robots[1].goal = None
@@ -139,28 +148,31 @@ class Simulation:
 			#	self.robots[0].destination = None
 			if self.robots[0].fire:
 				# Got to A* pos
+				astar_pos=Node(self.robots[1]._y,self.robots[1]._x)
 				print("Hey!", distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)))
 				print(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x))
-				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 2 and self.robots[1].goal = None:
+				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 3 and self.robots[1].goal == None:
 					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
+					self.robots[1].fire = self.robots[0].fire
 					self.robots[0].fire=None
+					# sleep(3)
 		pygame.quit()
 
 def main():
-	nrows=4
-	ncols=4
-	smol=5
-	med=3
+	nrows=3
+	ncols=3
+	smol=3
+	med=2
 	lrg=1
 	num_inside=8
 	num_ent=1
-	pixel_factor=20
+	pixel_factor=30
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
 	start = Node(sim.entrances[0][0], sim.entrances[0][1])
 	x=start.col
 	y=start.row
 	theta=sim.entrances[0][2]
-	bert = RRTBot(epsilon=0.5, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x-1,y=y,theta=theta)
+	bert = RRTBot(epsilon=0.3, start=start, nrow=len(sim.maze), ncol=len(sim.maze[0]), color=GREEN,x=x-1,y=y,theta=theta)
 	terminator = ABot(len(sim.maze), len(sim.maze[0]), color=BLUE, x=x, y=y, theta=sim.entrances[0][2]) 
 	terminator.loc = start
 	terminator.big_maze = sim.maze

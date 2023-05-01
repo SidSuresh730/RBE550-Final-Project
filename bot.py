@@ -16,7 +16,7 @@ class Bot():
 		self.radius=0.25		
 		self.path=[]
 		self.tree = Graph(Node(y, x))
-		self._dt=0.05
+		self._dt=0.01
 		self.goal = None
 		self.destination = None
 
