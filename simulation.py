@@ -119,8 +119,6 @@ class Simulation:
 		pygame.init()
 		clock = pygame.time.Clock()
 		run=True
-		#bot1 = self.robots[0]
-		#bot2 = self.robots[1]
 		done = False
 		while run:
 			clock.tick(FPS)
@@ -143,7 +141,7 @@ class Simulation:
 				# Got to A* pos
 				print("Hey!", distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)))
 				print(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x))
-				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 2:
+				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 2 and self.robots[1].goal = None:
 					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
 					self.robots[0].fire=None
 		pygame.quit()
