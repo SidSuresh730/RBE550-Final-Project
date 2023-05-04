@@ -74,6 +74,21 @@ class Simulation:
 			corners=np.array([(xmin,ymin),(xmax,ymin),(xmax,ymax),(xmin,ymax)])
 			pygame.draw.polygon(surface=WIN,color=BLACK,points=self.pixel_factor*corners+self.offset)
 
+	# Draw the fires in pygane
+	def draw_fires(self):
+		for fire in self.fires:
+			top=self.pixel_factor*(fire.row-fire.size)+self.offset[0]
+			left=self.pixel_factor*(fire.col)+self.offset[1]
+			w=self.pixel_factor*(fire.size)
+			r=pygame.Rect(left,top,w,w)
+			# Once we find the robot we can redraw it as the same color as the field, once it's found by the RRT bot we can switch the color to green
+			if not fire.active:
+				pygame.draw.rect(surface=WIN,rect=r,color=TAN)
+			elif fire.found:
+				pygame.draw.rect(surface=WIN,rect=r,color=DARK_GREEN)
+			else:
+				pygame.draw.rect(surface=WIN,rect=r,color=RED)
+
 	# Draw the robots in pygame
 	# The RRT bot is a cyan circle with a black circle around it showing the frontier range
 	# The A* bot is a blue circle
@@ -94,21 +109,6 @@ class Simulation:
 		# Placeholder to hold other bot things to draw
 		if type(bot) == ABot:
 			pass
-
-	# Draw the fires in pygane
-	def draw_fires(self):
-		for fire in self.fires:
-			top=self.pixel_factor*(fire.row-fire.size)+self.offset[0]
-			left=self.pixel_factor*(fire.col)+self.offset[1]
-			w=self.pixel_factor*(fire.size)
-			r=pygame.Rect(left,top,w,w)
-			# Once we find the robot we can redraw it as the same color as the field, once it's found by the RRT bot we can switch the color to green
-			if not fire.active:
-				pygame.draw.rect(surface=WIN,rect=r,color=TAN)
-			elif fire.found:
-				pygame.draw.rect(surface=WIN,rect=r,color=DARK_GREEN)
-			else:
-				pygame.draw.rect(surface=WIN,rect=r,color=RED)
 
 	# Function to draw all field parameters 
 	def draw_window(self):
@@ -132,6 +132,7 @@ class Simulation:
 		time = 0
 		rrt_time = 0
 		astar_time = 0
+		min_bot_ineract_dist = 3
 		done = False
 		all_out = False
 		
@@ -154,10 +155,8 @@ class Simulation:
 			 	self.robots[1].destination = None
 			# Inter robot comms here. If the RRT bot has found a fire, it's knowledge of A*'s position
 			if self.robots[0].fire:
-				# Go to A* pos
-				astar_pos=Node(self.robots[1]._y,self.robots[1]._x)
 				# If the robots are close enough pass the fire from RRT to A* and clear RRT's fire variable. This code can be examined in the future
-				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 3 and self.robots[1].goal == None:
+				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < min_bot_ineract_dist and self.robots[1].goal == None:
 					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
 					self.robots[1].fire = self.robots[0].fire
 					self.robots[0].fire=None
