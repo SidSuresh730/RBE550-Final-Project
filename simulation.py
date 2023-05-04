@@ -1,5 +1,4 @@
 from math import sin, cos, tan, radians, degrees
-# import mypylib.myfunctions as mf
 from data_structure_library import *
 from maze_generation import *
 import numpy as np
@@ -12,11 +11,11 @@ from a_star import ABot
 from mapper_robot import *
 from fire_fighting_robot import *
 from time import process_time,sleep
-
+import sys
 # Pygame constants and inits
 WIDTH, HEIGHT = 1000,1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-FPS = 45
+FPS = 60
 # WUMPUS_IMAGE = pygame.image.load('wumpus.png')
 # WUMPUS = pygame.transform.scale(WUMPUS_IMAGE,(25,25))
 pygame.display.set_caption("First Line Robust Automatic Aviators: Two Blind Mice")
@@ -122,45 +121,75 @@ class Simulation:
 			self.draw_robot(b)
 		pygame.display.update()
 
-	def run(self):#, simtime):
+	def run(self,simtime):#, simtime):
 		pygame.init()
 		i=0
 		clock = pygame.time.Clock()
-		run=True
+		time = 0
+		rrt_time = 0
+		astar_time = 0
 		done = False
-		while run:
-			i+=1
+		all_out = False
+		while time<simtime:
+			time+=1
 			clock.tick(FPS)
 			for event in pygame.event.get():
 				if event.type==pygame.QUIT:
-					run=False
+					time=simtime
 			self.draw_window()
 			# print(self.robots[0].goal)
 			# print(self.robots[0].destination)
-			self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
-			done = self.robots[1].step()
+			rrt_time+=self.robots[0].step(hwalls=self.hwalls,vwalls=self.vwalls,fires=self.fires,buffer=0.1)
+			(done,t) = self.robots[1].step()
+			astar_time+=t
 			if done:
-			 	self.robots[1].goal = None
-			 	self.robots[1].destination = None
+				self.robots[1].goal = None
+				self.robots[1].destination = None
 			if self.robots[0].fire:
-				# Got to A* pos
-				astar_pos=Node(self.robots[1]._y,self.robots[1]._x)
-				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 3 and self.robots[1].goal == None:
+				# # Got to A* pos
+				# astar_pos=Node(self.robots[1]._y,self.robots[1]._x)
+				if distance(self.robots[0].current_pos, Node(self.robots[1]._y, self.robots[1]._x)) < 4 and self.robots[1].goal == None:
 					self.robots[1].goal = (self.robots[0].fire.row, self.robots[0].fire.col)
 					self.robots[1].fire = self.robots[0].fire
 					self.robots[0].fire=None
-					# sleep(3)
+		self.get_metrics(rrt_time,astar_time)
 		pygame.quit()
+	
+	# write metrics to file for data analysis
+	def get_metrics(self,rrt_time,astar_time):
+		num_active = 0
+		num_fires = len(self.fires)
+		for fire in self.fires:
+			if fire.active:
+				num_active += 1
+			print("Active Fires: %d, Total Fires: %d" % (num_active,num_fires))
+		f = open("test_data.csv","a")
+		f.write("RRT Time: %.2f, AStar Time: %.2f\n" % (rrt_time,astar_time))
+		f.write("Active Fires: %d, Total Fires: %d\n" % (num_active,num_fires))
+		f.close()
 
-def main():
-	nrows=3
-	ncols=3
-	smol=2
-	med=1
-	lrg=1
-	num_inside=5
+def main(argv):
+	if len(argv<8):
+		nrows=3
+		ncols=3
+		smol=5
+		med=3
+		lrg=1
+		num_inside=4
+		simtime=1200
+	else:
+		nrows=int(argv[1])
+		ncols=int(argv[2])
+		smol=int(argv[3])
+		med=int(argv[4])
+		lrg=int(argv[5])
+		num_inside=int(argv[6])
+		simtime=int(argv[7])
 	num_ent=1
-	pixel_factor=30
+	pixel_factor=int(WIDTH/(nrows*(num_inside+5)))
+	f = open("test_data.csv","a")
+	f.write("Simtime: %d, nrows: %d, ncols: %d, smol: %d, med: %d, lrg: %d, numinside: %d\n" % (simtime,nrows,ncols,smol,med,lrg,num_inside))
+	f.close()
 	sim = Simulation(nrows=nrows,ncols=ncols,smol=smol,med=med,lrg=lrg,num_inside=num_inside,num_ent=num_ent,pixel_factor=pixel_factor)
 	start = Node(sim.entrances[0][0], sim.entrances[0][1])
 	x=start.col
@@ -173,9 +202,9 @@ def main():
 	
 	sim.add_bot(bert)
 	sim.add_bot(terminator)
-	sim.run()
+	sim.run(simtime)
 	# while True:
 	# 	sim.robots[0].step(sim.hwalls,sim.vwalls,sim.fires,0.1)	
 		# sim.draw_window()
 if __name__== "__main__":
-	main()
+	main(argv=sys.argv)

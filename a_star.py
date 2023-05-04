@@ -7,6 +7,7 @@ from matplotlib.path import Path # Plotting our search algorithm path
 import maze_generation
 from data_structure_library import *
 from bot import Bot
+from time import process_time
 
 class ABot(Bot):
 	def __init__(self, nrow, ncol, color, x, y, theta) -> None:
@@ -85,14 +86,16 @@ class ABot(Bot):
 		return True
 	
 	def step(self):
+		t_start = process_time()
 		self.loc_path.append(Node(self._y, self._x))
 		if self.destination:
 			if round(distance(Node(self._y, self._x), Node(self.goal[0], self.goal[1])), 4) == 0:
 				if self.fire:
-					print("8======================================================================================D A*")
+					# print("8======================================================================================D A*")
+					t_stop = process_time()
 					self.fire.active=False
 					self.fire=None
-				return True 
+				return (True,t_stop-t_start) 
 			else:
 				self.motion_primitive()
 		elif self.goal:
@@ -100,6 +103,8 @@ class ABot(Bot):
 			path = self.a_star(start, self.goal, self.big_maze)	
 			self.path = self.local_planner(path, self.big_maze)
 			self.destination = self.path.pop()
+		t_stop = process_time()
+		return (False, t_stop-t_start)
 
 def main():
 	print("A Star Main\n")
