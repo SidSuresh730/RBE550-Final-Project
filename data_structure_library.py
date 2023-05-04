@@ -19,6 +19,38 @@ WHITE = (255,255,255)
 FIRE_ENGINE_RED = (206,32,41) 
 CYAN = (0,255,255)
 
+class Node:
+	def __init__(self, row, col):
+		# Row and col location of the Node
+		self.row = row
+		self.col = col
+		
+		# Heuristic variables
+		self.g = math.inf
+		self.h = math.inf
+		self.f = math.inf
+		
+		# list of the neighbors of a particular node
+		self.neighbors = None
+		# List of all Nodes the Node is connected to. Each node is connected to itself
+		self.connected = [self]
+		# parent of the node in a graph
+		self.parent = None       
+	
+	# Add one node to another's connected list. Full connection is handled outside
+	def Connect(self, node):
+		self.connected = np.append(self.connected, node)
+	
+	# Need to compare nodes a lot so we dont create new ones, only need their locations to be identical 
+	def __eq__(self, other):
+		return (self.row, self.col) == (other.row, other.col)
+		# return distance(self,other)<=0.0001
+	
+	def __str__(self):
+		print(self.row, self.col, "-")#, end = ' ')
+		return ""
+
+# ---- Helper functions for Node objects:
 # function for finding Euclidean distance between nodes
 # Input: Nodes
 # Output: float (Distance)
@@ -30,47 +62,25 @@ def distance(node1, node2):
 # Output: float (angle of direction)
 def direction(node1, node2):
 	return math.atan2(node2.row-node1.row, node2.col-node1.col)
-
-def pn_distance(point, node, num_rows):
-	return math.sqrt((point[0]-node.col)**2 + (point[1]-(num_rows-node.row-1))**2)
-
-def pn_direction(point, node, num_rows):
-	#print("Pt", point)
-	#print("Nd", node)
-	#print("Nd conv", node.col, num_rows-node.row-1)
-	return math.atan2((num_rows-node.row-1)-point[1], node.col-point[0])
 	
-class Node:
-		def __init__(self, row, col):
-			# Row and col location of the Node
-			self.row = row
-			self.col = col
-			
-			# Heuristic variables
-			self.g = math.inf
-			self.h = math.inf
-			self.f = math.inf
-			
-			# list of the neighbors of a particular node
-			self.neighbors = None
-			# List of all Nodes the Node is connected to. Each node is connected to itself
-			self.connected = [self]
-			# parent of the node in a graph
-			self.parent = None
+# Input for finding a node in a list of nodes.
+# Since we dont want to make multiple nodes at the same location, we check for nodes by checking the row and col values
+# Inputs:
+#	row: Row of the node we are looking for
+#	col: Col of the node we are looking for
+#	nodes: List of nodes to search through
+# Output:
+#	node: The node in the list that matches the row and col given. 
+# Note: This is only intended to be run where you know the node you are looking for exists, but functionality can be set up if it doesnt so we still return 0
+def find_node(row, col, nodes):
+	for node in nodes:
+		if node.row == row and node.col == col:	
+			return node
+	return 0
+# ---- End helper node functions
 
-			# rrt conditions            
-		
-		def Connect(self, node):
-			self.connected = np.append(self.connected, node)
-		
-		def __eq__(self, other):
-			return (self.row, self.col) == (other.row, other.col)
-			# return distance(self,other)<=0.0001
-		
-		def __str__(self):
-			print(self.row, self.col, "-")#, end = ' ')
-			return ""
 
+# Graph of nodes including vertices and edges
 class Graph:
 	def __init__(self, start) -> None:
 		self.V = []
@@ -94,6 +104,7 @@ class Graph:
 	def print_edge(self, e):
 		print(e[0], e[1])
 
+# Vertical wall inside the maze. Defined by its column, and lower and upper limits (rows it extends to)
 class VWall:
 	def __init__(self, col, llim, ulim) -> None:
 		self.col = col
@@ -104,6 +115,7 @@ class VWall:
 		print(self.col, self.llim, self.ulim)
 		return ""
 
+# Horizontal wall inside the maze. Defined by its row, and lower and upper limits (columns it extends to)
 class HWall:
 	def __init__(self, row, llim, ulim) -> None:
 		self.row = row
@@ -183,6 +195,7 @@ class PriorityQueue:
 			print(n)
 		return ""
 
+# Fire object put inside the maze. Defined by its location and size
 class Fire:
 	def __init__(self, row, col, size):
 		# Row and col location of the Node
@@ -192,52 +205,10 @@ class Fire:
 		
 		self.active = True
 		self.found = False
+		
 	def extinguish(self):
 		self.active = False
 		
 	def __str__(self):
 		print(self.row, self.col, self.size, "-", end = ' ')
 		return ""
-
-def generate_list_nodes(maze, end):
-	num_rows = len(maze)
-	num_cols = len(maze[0])
-	nodes = []
-	for i in range(num_rows):
-		for j in range(num_cols):
-			if maze[i][j]:
-				node = Node(i, j)
-				if(end):
-					node.h = math.dist([i, j], end)
-				else:
-					node.h = 0
-				nodes.append(node)
-	return nodes
-
-
-def get_neighbors(node, field, nodes, graph):
-	neighbors = []
-	row_mod = [-1, -1, -1, 0, 0, 1, 1, 1]
-	col_mod = [-1, 0, 1, -1, 1, -1, 0, 1]
-	num_neighbors = min(len(row_mod), len(col_mod))
-	for i in range(num_neighbors):
-		row = node.row + row_mod[i]
-		col = node.col + col_mod[i]
-		if row >= 0 and col >= 0 and row < len(field) and col < len(field[0]) and field[row][col]:
-			Neighbor = find_node(row, col, nodes)
-			alt = node.g + distance(node, Neighbor)
-			if alt < Neighbor.g:
-				graph.remove_edge((Neighbor.parent, Neighbor))
-				Neighbor.g = alt
-				Neighbor.f = Neighbor.g + Neighbor.h
-				Neighbor.parent = node
-				graph.E.append((Neighbor.parent, Neighbor))
-				neighbors.append(Neighbor)
-	return neighbors
-	
-	
-def find_node(row, col, nodes):
-	for node in nodes:
-		if node.row == row and node.col == col:	
-			return node
-	return 0

@@ -188,11 +188,8 @@ def generate_entrances(maze, num_ent):
 	count = 0
 	# We set up a count and an if statement check to make sure the entrance is not directly next to a wall when we generate it
 	while count < num_ent:
-		# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- FIX THIS LATER 
-		#ent_loc = random.randint(1, 4)
-		#n = random.randint(1, num_rows-2)
-		ent_loc = 4
-		n = num_rows-3
+		ent_loc = random.randint(1, 4)
+		n = random.randint(1, num_rows-2)
 		if ent_loc == 1: # Top side
 			if maze[1][n]: 
 				maze[0][n] = 3
@@ -360,6 +357,9 @@ def generate_maze(num_rows, num_cols, num_inside, num_fires_smol, num_fires_med,
 	if num_inside == 2 and num_fires_lrg:
 		print("Maze insides too small")
 		sys.exit()
+	if num_rows==1 or num_cols==1:
+		print("Maze size too small")
+		sys.exit
 	# ---- Generate maze with all walls active
 	maze = np.zeros((num_rows * 2 + 1, num_cols * 2 + 1))
 	for i in range(num_rows):
@@ -388,10 +388,10 @@ def main():
 	num_fires_smol = 5 # Number of 1x1 in the maze
 	num_fires_med = 3 # Number of 2x2 in the maze
 	num_fires_lrg = 1 # Number of 3x3 in the maze
-	num_inside = 3 # Number of padding inside each cell
+	num_inside = 4 # Number of padding inside each cell
 	num_ent = 1 # Number of entrances to the maze
 	plot_maze = True
-	[big_maze, fires, entrances] = generate_maze(num_rows, num_cols, num_inside, num_fires_smol, num_fires_med, num_fires_lrg, num_ent, plot_maze)
+	[maze, fires, entrances] = generate_maze(num_rows, num_cols, num_inside, num_fires_smol, num_fires_med, num_fires_lrg, num_ent, plot_maze)
 
 	# ---- Test code ----
 		

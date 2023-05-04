@@ -20,6 +20,15 @@ class Bot():
 		self.goal = None
 		self.destination = None
 
+	# Run collision detection between the current location of the bot and all horizontal and veritcal walls in the maze
+	# Input:
+	#	x: Float, Horizontal location of the robot in simulation space, effectively the col (0 at top left in visualization)
+	#	y: Float, Vertical location of the robot in simulation space, effectively the row (0 at top left in visualization)
+	#	hwalls: List of Hwall objects, representing the horizontal walls in the maze to collision detect against 
+	#	vwalls: List of Vwall objects, representing the vertical walls in the maze to collision detect against 
+	#	buffer: Float, Buffer against robot -> wall collision detection, so we dont end up getting to close to an object
+	# Output:
+	#	Boolean, true if there is a collision false if not
 	def collision_detect(self,x,y,hwalls,vwalls,buffer):
 		for wall in hwalls:
 			not_y,not_x=False,False
@@ -54,29 +63,45 @@ class Bot():
 			if not(not_x or not_y):
 				return True
 		return False		
-		
+	
+	# Increments a bots x and y value based on its current destination and current position. If not angled towards the destination rotate the bot, otherwise drive forward
+	# Input: None, everything done is using internal bot variables
+	# Output: Nothing, the bot's _x and _y values are edited in the function however 
 	def motion_primitive(self):
+		# Max angle and max distance to move based on calculations performed on a diwheel bot
 		max_ang = 0.3
 		max_move = 1
+		# Turn loc into node in order to use the distance and direction function between it and the destination, then get distance and angle to move
+		# For angle to move subtract the robot's current theta
 		distance_to_dest = distance(Node(self._y, self._x), self.destination)
 		angle_to_dest = (direction(Node(self._y, self._x), self.destination) - self._theta)
 		angle_to_dest = angle_to_dest 
-		# if round(distance_to_dest, 4) == 0:
+		# If we are at the destination, pop the bot's path for the next destination to go to. This works because the check that there is a pth value 
+		# that can be popped is performed in the bot specific step functions
 		if distance_to_dest == 0:
 			self.destination = self.path.pop()
 		else:
+			# If not check the angle. If the angle we need to get to is greater than a small value (floating point nonsese) then rotate towards that desired angle.
 			if abs(angle_to_dest) > 0.001:
-				# print("Rofl comma copter", angle_to_dest)
 				inc_val = min(abs(angle_to_dest), max_ang)
+				# * 2 -1 is my favorite way to map a boolean to -1 or 1
 				self._theta += (inc_val * ((angle_to_dest > 0) * 2 - 1)) 
+			# If the angle is good, either move the robot the maximum distance it needs to go or until it is right on top of the goal, whichever is smaller. 
+			# This is also run with the angle to move to, and is a way to get the robot lined up precisely.
 			else:
 				inc_val = min(distance_to_dest, max_move)
 				self._x += inc_val * cos(self._theta)
 				self._y += inc_val * sin(self._theta)
 	
+	# Converts a row value of the bot from array reference frame to plotting reference frame, only used when plotting
+	# Input: Row, the row value to be converted
+	# Output: The y location of that row from a standard reference frame, Y pointing up and X pointing right
 	def conv(self, row):
 		return self.nrow - row - 1
 	
+	# bot.plot (it's fun to say I promise), plots the bot.tree atribute including veritces and edges
+	# Input: None but uses self.tree
+	# Output: None but adds to the plot being generated in matplotlib
 	def plot(self):
 		# plot vertices
 		for node in self.tree.V:
@@ -87,44 +112,8 @@ class Bot():
 			plt.plot(x_arr, y_arr, self.color, linestyle="dotted", linewidth=2)
 	
 	# method for defining a cell that is useful for the algorithm
+	
 	def cell(self, x, y):
 		# cell has length and width of n
 		n=self.radius
 		return (x//n, y//n)
-		
-		
-
-	def line_box_collision(self,pos1,pos2,hwalls,vwalls):
-		list_points = list()
-		wall_width = 0.2
-		for wall in hwalls:
-			xmin=wall.llim
-			xmax=wall.ulim
-			ymin=wall.row-wall_width/2
-			ymax=wall.row+wall_width/2
-			list_points.append([xmin, ymin])
-			list_points.append([xmin, ymax])
-			list_points.append([xmax, ymin])
-			list_points.append([xmax, ymax])
-		for wall in vwalls:
-			xmin=wall.col-wall_width/2
-			xmax=wall.col+wall_width/2
-			ymin=wall.llim
-			ymax=wall.ulim
-			list_points.append([xmin, ymin])
-			list_points.append([xmin, ymax])
-			list_points.append([xmax, ymin])
-			list_points.append([xmax, ymax])
-		for point in list_points:
-			dist = self.point_line_dist(point, pos1, pos2)
-			if dist < self.radius:
-				return True
-		return False
-	
-	def point_line_dist(self, p0, p1_node, p2_node):
-		p1 = [p1_node.row, p1_node.col]
-		p2 = [p2_node.row, p2_node.col]
-		print("PLD", p0, p1, p2)
-		dist = abs((p2[0] - p1[0]) * (p2[1] - p1[1]) - (p1[0] - p0[0]) * (p1[1] - p0[1])) / math.sqrt(pow(p2[0] - p1[0], 2) + pow(p2[1] - p1[1], 2))
-		return dist
-
